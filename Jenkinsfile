@@ -60,7 +60,7 @@ def cmake_build(compiler, flags, prefixpath="/opt/rocm"){
 def buildJob(compiler, flags, image, prefixpath="/opt/rocm", cmd = ""){
 
         env.HSA_ENABLE_SDMA=0 
-        env.MIOPEN_DISABLE_CACHE=1
+        // env.MIOPEN_DISABLE_CACHE=1
         checkout scm
         def dockerOpts="--device=/dev/kfd --device=/dev/dri --group-add video --cap-add=SYS_PTRACE --security-opt seccomp=unconfined"
         def dockerArgs = "--build-arg PREFIX=${prefixpath} "
