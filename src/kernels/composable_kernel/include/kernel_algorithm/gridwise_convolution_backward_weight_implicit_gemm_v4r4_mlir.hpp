@@ -44,11 +44,11 @@ template <index_t GridSize,
           index_t GemmBBlockCopySrcDataPerRead_GemmK,
           index_t GemmBBlockCopyDstDataPerWrite_GemmN,
           index_t GemmCThreadCopyDstDataPerWrite_GemmN1>
-struct GridwiseConvolutionBackwardWeightsImplicitGemm_v4r4_nchw_kcyx_nkhw 
+struct GridwiseConvolutionBackwardWeightImplicitGemm_v4r4_mlir
 {
-__device__ void Run(const Float* const __restrict__ p_in_global,
-                        const Float* const __restrict__ p_out_global,
-                        Float* const __restrict__ p_wei_global) const
+    __device__ void Run(const Float* const __restrict__ p_in_global,
+                        Float* __restrict__ p_wei_global,
+                        const Float* const __restrict__ p_out_global) const
     {
 
         constexpr auto I1 = Number<1>{};

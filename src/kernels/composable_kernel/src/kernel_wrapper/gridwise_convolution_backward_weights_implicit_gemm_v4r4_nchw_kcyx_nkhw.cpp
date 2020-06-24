@@ -1,25 +1,16 @@
+
 #include "common_header.hpp"
-#include "gridwise_convolution_backward_weights_implicit_gemm_v4r4_nchw_kcyx_nkhw.hpp"
+#include "gridwise_convolution_backward_weight_implicit_gemm_v4r4_mlir.hpp"
 #include "float_types.h"
 
 extern "C" __global__
-    __launch_bounds__(CK_PARAM_TUNABLE_BLOCK_SIZE, 2) void gridwise_convolution_backward_weights_implicit_gemm_v4r4_nchw_kcyx_nkhw(
-        const FLOAT* const __restrict__ p_in_global,
-        const FLOAT* const __restrict__ p_wei_global,
-        FLOAT* const __restrict__ p_out_global)
+
+    __launch_bounds__(CK_PARAM_TUNABLE_BLOCK_SIZE, 2) void gridwise_convolution_backward_weights_implicit_gemm_v4r4_nchw_kcyx_nkhw 
+        (const FLOAT* const __restrict__ p_in_global,
+        const FLOAT* const __restrict__ p_out_global,
+        FLOAT* const __restrict__ p_wei_global)
 {
     using namespace ck;
-
-    // read problem parameters
-    constexpr index_t N  = CK_PARAM_PROBLEM_N;
-    constexpr index_t K  = CK_PARAM_PROBLEM_K;
-    constexpr index_t C  = CK_PARAM_PROBLEM_C;
-    constexpr index_t Hi = CK_PARAM_PROBLEM_HI;
-    constexpr index_t Wi = CK_PARAM_PROBLEM_WI;
-    constexpr index_t Ho = CK_PARAM_PROBLEM_HO;
-    constexpr index_t Wo = CK_PARAM_PROBLEM_WO;
-    constexpr index_t Y  = CK_PARAM_PROBLEM_Y;
-    constexpr index_t X  = CK_PARAM_PROBLEM_X;
 
     constexpr index_t ConvStrideH = CK_PARAM_PROBLEM_CONV_STRIDE_H;
     constexpr index_t ConvStrideW = CK_PARAM_PROBLEM_CONV_STRIDE_W;
@@ -40,14 +31,42 @@ extern "C" __global__
     constexpr index_t GemmNPerBlock = CK_PARAM_TUNABLE_GEMM_N_PER_BLOCK;
     constexpr index_t GemmKPerBlock = CK_PARAM_TUNABLE_GEMM_K_PER_BLOCK;
 
-#if CK_PARAM_PROBLEM_CONV_DIRECTION_BACKWARD_WEIGHT
-    constexpr auto in_nchw_desc  = make_native_tensor_descriptor_packed(Sequence<N, C, Hi, Wi>{});
-    constexpr auto wei_kcyx_desc = make_native_tensor_descriptor_packed(Sequence<K, C, Y, X>{});
-    constexpr auto out_nkhw_desc = make_native_tensor_descriptor_packed(Sequence<N, K, Ho, Wo>{});
+    // k,c,y,x
+    constexpr index_t k = CK_PARAM_PROBLEM_K;
+    constexpr index_t c = CK_PARAM_PROBLEM_C;
+    constexpr index_t y = CK_PARAM_PROBLEM_Y;
+    constexpr index_t x = CK_PARAM_PROBLEM_X;
 
-#else
-    static_assert(false, "wrong! convolution direction should be only backward-weight");
-#endif
+    constexpr index_t stride_x = 1;
+    constexpr index_t stride_y = x * stride_x;
+    constexpr index_t stride_c = y * stride_y;
+    constexpr index_t stride_k = c * stride_c;
+    constexpr auto weight_k_c_y_x_desc = make_native_tensor_descriptor(Sequence<k, c, y, x>{}, Sequence<stride_k, stride_c, stride_y, stride_x>{});
+
+    // ni,ci,hi,wi
+    constexpr index_t ni = CK_PARAM_PROBLEM_N;
+    constexpr index_t ci = CK_PARAM_PROBLEM_C;
+    constexpr index_t hi = CK_PARAM_PROBLEM_HI;
+    constexpr index_t wi = CK_PARAM_PROBLEM_WI;
+
+    constexpr index_t stride_wi = 1;
+    constexpr index_t stride_hi = wi * stride_wi;
+    constexpr index_t stride_ci = hi * stride_hi;
+    constexpr index_t stride_ni = ci * stride_ci;
+    constexpr auto input_ni_ci_hi_wi_desc = make_native_tensor_descriptor(Sequence<ni, ci, hi, wi>{}, Sequence<stride_ni, stride_ci, stride_hi, stride_wi>{});
+
+    // no,ko,ho,wo
+    constexpr index_t no = CK_PARAM_PROBLEM_N;
+    constexpr index_t ko = CK_PARAM_PROBLEM_K;
+    constexpr index_t ho = CK_PARAM_PROBLEM_HO;
+    constexpr index_t wo = CK_PARAM_PROBLEM_WO;
+
+    constexpr index_t stride_wo = 1;
+    constexpr index_t stride_ho = wo * stride_wo;
+    constexpr index_t stride_ko = ho * stride_ho;
+    constexpr index_t stride_no = ko * stride_ko;
+    constexpr auto output_no_ko_ho_wo_desc = make_native_tensor_descriptor(Sequence<no, ko, ho, wo>{}, Sequence<stride_no, stride_ko, stride_ho, stride_wo>{});
+
 
     using ConvStrides   = Sequence<ConvStrideH, ConvStrideW>;
     using ConvDilations = Sequence<ConvDilationH, ConvDilationW>;
@@ -56,16 +75,16 @@ extern "C" __global__
     using InRightPads = Sequence<InRightPadH, InRightPadW>;
 
     // read and calculate tuning parameter
-    constexpr index_t GemmMPerThread     = CK_PARAM_TUNABLE_GEMM_M_PER_THREAD;
-    constexpr index_t GemmNPerThread     = CK_PARAM_TUNABLE_GEMM_N_PER_THREAD;
+    constexpr index_t GemmMPerThreadSubC = CK_PARAM_TUNABLE_GEMM_M_PER_THREAD;
+    constexpr index_t GemmNPerThreadSubC = CK_PARAM_TUNABLE_GEMM_N_PER_THREAD;
     constexpr index_t GemmMLevel0Cluster = CK_PARAM_TUNABLE_GEMM_M_LEVEL0_CLUSTER;
     constexpr index_t GemmNLevel0Cluster = CK_PARAM_TUNABLE_GEMM_N_LEVEL0_CLUSTER;
     constexpr index_t GemmMLevel1Cluster = CK_PARAM_TUNABLE_GEMM_M_LEVEL1_CLUSTER;
     constexpr index_t GemmNLevel1Cluster = CK_PARAM_TUNABLE_GEMM_N_LEVEL1_CLUSTER;
-    constexpr index_t GemmKPerThread     = 1;
+    constexpr index_t GemmKPerThreadLoop = 1;
 
-    constexpr index_t ThreadGemmDataPerRead_GemmM = GemmMPerThread;
-    constexpr index_t ThreadGemmDataPerRead_GemmN = GemmNPerThread;
+    constexpr index_t GemmThreadGemmDataPerReadM = GemmMPerThreadSubC;
+    constexpr index_t GemmThreadGemmDataPerReadN = GemmNPerThreadSubC;
 
     // A matrix
     constexpr index_t GemmABlockCopyClusterLengths_GemmK =
@@ -121,40 +140,39 @@ extern "C" __global__
     constexpr index_t GemmCThreadCopyDstDataPerWrite_GemmN1 =
         CK_PARAM_TUNABLE_GEMM_C_THREAD_COPY_DST_DATA_PER_WRITE_GEMM_N1;
 
-    constexpr auto gridwise_conv =
-        GridwiseConvolutionBackwardWeightsImplicitGemm_v4r4_nchw_kcyx_nkhw<
-            GridSize,
-            BlockSize,
-            FLOAT,
-            FLOAT_ACCUM,
-            decltype(in_nchw_desc),
-            decltype(wei_kcyx_desc),
-            decltype(out_nkhw_desc),
-            ConvStrides,
-            ConvDilations,
-            InLeftPads,
-            InRightPads,
-            GemmMPerBlock,
-            GemmNPerBlock,
-            GemmKPerBlock,
-            GemmMPerThread,
-            GemmNPerThread,
-            GemmKPerThread,
-            GemmMLevel0Cluster,
-            GemmNLevel0Cluster,
-            GemmMLevel1Cluster,
-            GemmNLevel1Cluster,
-            ThreadGemmDataPerRead_GemmM,
-            ThreadGemmDataPerRead_GemmN,
-            GemmABlockCopyThreadSliceLengths_GemmK_GemmM,
-            GemmABlockCopyThreadClusterLengths_GemmK_GemmM,
-            GemmABlockCopySrcDataPerRead_GemmK,
-            GemmABlockCopyDstDataPerWrite_GemmM,
-            GemmBBlockCopyThreadSliceLengths_GemmK_GemmN,
-            GemmBBlockCopyThreadClusterLengths_GemmK_GemmN,
-            GemmBBlockCopySrcDataPerRead_GemmK,
-            GemmBBlockCopyDstDataPerWrite_GemmN,
-            GemmCThreadCopyDstDataPerWrite_GemmN1>{};
-    // in hpp is in,out,wei => dout * din = wei
+    constexpr auto gridwise_conv = GridwiseConvolutionBackwardWeightImplicitGemm_v4r4_mlir
+        <GridSize,
+        BlockSize,
+        FLOAT,
+        FLOAT_ACCUM,
+        decltype(input_ni_ci_hi_wi_desc),
+        decltype(weight_k_c_y_x_desc),
+        decltype(output_no_ko_ho_wo_desc),
+        ConvStrides,
+        ConvDilations,
+        InLeftPads,
+        InRightPads,
+        GemmMPerBlock,
+        GemmNPerBlock,
+        GemmKPerBlock,
+        GemmMPerThreadSubC,
+        GemmNPerThreadSubC,
+        GemmKPerThreadLoop,
+        GemmMLevel0Cluster,
+        GemmNLevel0Cluster,
+        GemmMLevel1Cluster,
+        GemmNLevel1Cluster,
+        GemmThreadGemmDataPerReadM,
+        GemmThreadGemmDataPerReadN,
+        GemmABlockCopyThreadSliceLengths_GemmK_GemmM,
+        GemmABlockCopyThreadClusterLengths_GemmK_GemmM,
+        GemmABlockCopySrcDataPerRead_GemmK,
+        GemmABlockCopyDstDataPerWrite_GemmM,
+        GemmBBlockCopyThreadSliceLengths_GemmK_GemmN,
+        GemmBBlockCopyThreadClusterLengths_GemmK_GemmN,
+        GemmBBlockCopySrcDataPerRead_GemmK,
+        GemmBBlockCopyDstDataPerWrite_GemmN,
+        GemmCThreadCopyDstDataPerWrite_GemmN1>{};
+
     gridwise_conv.Run(p_in_global, p_wei_global, p_out_global);
 }
