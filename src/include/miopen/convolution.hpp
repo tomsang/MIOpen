@@ -425,6 +425,7 @@ struct ConvolutionDescriptor : miopenConvolutionDescriptor
     std::vector<int> trans_output_pads;
     int group_count;
     float lowp_quant; // quantization factor for low precision
+    bool force_xdlops;
 
     private:
     void ConvFwdGemm(Handle& handle,

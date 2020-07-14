@@ -90,6 +90,13 @@ extern "C" miopenStatus_t miopenSetConvolutionGroupCount(miopenConvolutionDescri
     return miopen::try_([&] { miopen::deref(convDesc).group_count = groupCount; });
 }
 
+extern "C" miopenStatus_t miopenSetConvolutionForceXDLOPS(miopenConvolutionDescriptor_t convDesc,
+                                                          bool forceXdlops)
+{
+    MIOPEN_LOG_FUNCTION(convDesc, forceXdlops);
+    return miopen::try_([&] { miopen::deref(convDesc).force_xdlops = forceXdlops; });
+}
+
 extern "C" miopenStatus_t
 miopenSetTransposeConvOutputPadding(miopenConvolutionDescriptor_t convDesc, int adj_h, int adj_w)
 {

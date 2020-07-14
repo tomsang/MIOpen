@@ -104,12 +104,28 @@ struct ConvolutionContextInterpreter
 
     static auto GetBatchN(const ConvolutionContext& c) { return c.batch_sz; }
 
+    static auto GetOutputLayout(const ConvolutionContext& c)
+    {
+        if(c.direction.IsForward())
+            return c.out_layout;
+        else
+            return c.in_layout;
+    }
+
     static auto GetOutputChannelK(const ConvolutionContext& c)
     {
         if(c.direction.IsForward())
             return c.n_outputs;
         else
             return c.n_inputs;
+    }
+
+    static auto GetInputLayout(const ConvolutionContext& c)
+    {
+        if(c.direction.IsForward())
+            return c.in_layout;
+        else
+            return c.out_layout;
     }
 
     static auto GetInputChannelC(const ConvolutionContext& c)
@@ -169,6 +185,8 @@ struct ConvolutionContextInterpreter
     }
 
     static auto GetFilterDepthZ(const ConvolutionContext& c) { return c.kernel_size_d; }
+
+    static auto GetFilterLayout(const ConvolutionContext& c) { return c.weights_layout; }
 
     static auto GetFilterHeightY(const ConvolutionContext& c) { return c.kernel_size_h; }
 
@@ -419,7 +437,7 @@ inline static bool NextFlag(bool& v)
 
 static inline bool IsXdlopsSupport(const ConvolutionContext& c)
 {
-    if(miopen::IsEnabled(MIOPEN_DEBUG_CONV_IMPLICIT_GEMM_XDLOPS_EMULATE{}))
+    if(miopen::IsEnabled(MIOPEN_DEBUG_CONV_IMPLICIT_GEMM_XDLOPS_EMULATE{}) || c.force_xdlops)
         return true;
 
     // disable xdlops kernels by default due to possible failures:
