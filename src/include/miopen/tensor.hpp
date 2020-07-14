@@ -210,6 +210,8 @@ struct TensorDescriptor : miopenTensorDescriptor
     bool packed;
 
     miopenDataType_t type = miopenFloat;
+
+    std::string layout;
 };
 
 } // namespace miopen

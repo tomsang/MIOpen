@@ -522,6 +522,60 @@ struct PerformanceImplicitGemmV4R4Fwd : Serializable<PerformanceImplicitGemmV4R4
     std::string ToString() const;
 };
 
+struct PerformanceImplicitGemmMlir : Serializable<PerformanceImplicitGemmMlir>
+{
+    int BlockSize;
+
+    int GemmMPerBlock;
+    int GemmNPerBlock;
+    int GemmKPerBlock;
+
+    int GemmMPerThread;
+    int GemmNPerThread;
+
+    bool use_spare_set;
+
+    PerformanceImplicitGemmMlir(int, int, int, int, int, int, bool);
+
+    PerformanceImplicitGemmMlir(int a, int b, int c, int d, int e, int f)
+        : PerformanceImplicitGemmMlir(a, b, c, d, e, f, false)
+    {
+    }
+
+    PerformanceImplicitGemmMlir() : PerformanceImplicitGemmMlir(-1, -1, -1, -1, -1, -1, false) {}
+
+    PerformanceImplicitGemmMlir(bool spare);
+
+    bool operator==(const PerformanceImplicitGemmMlir& other) const;
+
+    template <class Self, class F>
+    static void Visit(Self&& self, F f)
+    {
+        f(self.BlockSize, "BlockSize");
+        f(self.GemmMPerBlock, "GemmMPerBlock");
+        f(self.GemmNPerBlock, "GemmNPerBlock");
+        f(self.GemmKPerBlock, "GemmKPerBlock");
+        f(self.GemmMPerThread, "GemmMPerThread");
+        f(self.GemmNPerThread, "GemmNPerThread");
+    }
+
+    std::tuple<int, bool> CalculateGridSize(const ConvolutionContext& ctx) const;
+    std::tuple<int, int, int, int, bool>
+    CalculateBlockGemmPerformanceParameters(const ConvolutionContext& ctx) const;
+    std::tuple<int, int, int, int, bool>
+    CalculateGemmABlockCopyPerformanceParameters(const ConvolutionContext& ctx) const;
+    std::tuple<int, int, int, int, bool>
+    CalculateGemmBBlockCopyPerformanceParameters(const ConvolutionContext& ctx) const;
+    std::tuple<int, bool>
+    CalculateGemmCThreadCopyPerformanceParameters(const ConvolutionContext& ctx) const;
+    std::tuple<std::size_t, bool> CalculateLdsNumberOfByte(const ConvolutionContext& ctx) const;
+    bool IsValidValue() const;
+    bool IsValid(const ConvolutionContext& ctx) const;
+    void EuristicInit(const ConvolutionContext& ctx);
+    bool SetNextValue();
+    std::string ToString() const;
+};
+
 struct PerformanceImplicitGemmV4R4WrW : Serializable<PerformanceImplicitGemmV4R4WrW>
 {
     int BlockSize;
@@ -755,6 +809,20 @@ struct ConvHipImplicitGemmV4R1Fwd : SolverBase<ConvolutionContext>
 
     PerformanceImplicitGemmV4R1 Search(const ConvolutionContext&,
                                        const AnyInvokeParams& invoke_ctx) const;
+};
+
+struct ConvHipImplicitGemmMlir : SolverBase<ConvolutionContext>
+{
+    static std::tuple<int, int, int> CalculateGemmSize(const ConvolutionContext& ctx);
+    bool IsApplicable(const ConvolutionContext& ctx) const;
+    PerformanceImplicitGemmMlir GetPerformanceConfig(const ConvolutionContext& ctx) const;
+    bool IsValidPerformanceConfig(const ConvolutionContext& ctx,
+                                  const PerformanceImplicitGemmMlir& config) const;
+    PerformanceImplicitGemmMlir Search(const ConvolutionContext&,
+                                       const AnyInvokeParams& invoke_ctx) const;
+    ConvSolution GetSolution(const ConvolutionContext& ctx,
+                             const PerformanceImplicitGemmMlir& config,
+                             bool disableConfigOverrideFromEnv = false) const;
 };
 
 struct ConvHipImplicitGemmV4R4Fwd : SolverBase<ConvolutionContext>
