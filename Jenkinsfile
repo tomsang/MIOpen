@@ -152,7 +152,7 @@ pipeline {
         stage("Aux tests"){
             parallel{
                 stage('Hip clang debug COMGR') {
-                    agent{ label rocmnode("vega") }
+                    agent{ label rocmnode("vega20") }
                     environment{
                         cmd = """
                             ulimit -c unlimited
@@ -170,7 +170,7 @@ pipeline {
                 }
 
                 stage('Hip clang debug COMGR copy 1 ') {
-                    agent{ label rocmnode("vega") }
+                    agent{ label rocmnode("vega20") }
                     environment{
                         cmd = """
                             ulimit -c unlimited
@@ -188,7 +188,7 @@ pipeline {
                 }
 
                 stage('Hip clang debug COMGR copy 2') {
-                    agent{ label rocmnode("vega") }
+                    agent{ label rocmnode("vega20") }
                     environment{
                         cmd = """
                             ulimit -c unlimited
@@ -205,7 +205,7 @@ pipeline {
                     }
                 }
                 stage('Hip clang debug COMGR copy 3') {
-                    agent{ label rocmnode("vega") }
+                    agent{ label rocmnode("vega20") }
                     environment{
                         cmd = """
                             ulimit -c unlimited
