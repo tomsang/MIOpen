@@ -831,7 +831,7 @@ void ConvolutionDescriptor::FindConvFwdAlgorithm(Handle& handle,
         perfResults[i].memory   = perf_db[i].workspace;
     }
 
-    MIOPEN_LOG_I("FW Chosen Algorithm: " << perf_db[0].solver_id << " , " << perf_db[0].workspace
+    MIOPEN_LOG_W("FW Chosen Algorithm: " << perf_db[0].solver_id << " , " << perf_db[0].workspace
                                          << ", "
                                          << perf_db[0].time);
 }
@@ -2460,7 +2460,7 @@ void ConvolutionDescriptor::FindConvBwdDataAlgorithm(Handle& handle,
         perfResults[i].memory        = perf_db[i].workspace;
     }
 
-    MIOPEN_LOG_I("BWD Chosen Algorithm: " << perf_db[0].solver_id << " , " << perf_db[0].workspace
+    MIOPEN_LOG_W("BWD Chosen Algorithm: " << perf_db[0].solver_id << " , " << perf_db[0].workspace
                                           << ", "
                                           << perf_db[0].time);
 }
@@ -3839,7 +3839,7 @@ void ConvolutionDescriptor::FindConvBwdWeightsAlgorithm(Handle& handle,
         perfResults[i].time             = perf_db[i].time;
         perfResults[i].memory           = perf_db[i].workspace;
     }
-    MIOPEN_LOG_I("BWrW Chosen Algorithm: " << perf_db[0].solver_id << " , " << perf_db[0].workspace
+    MIOPEN_LOG_W("BWrW Chosen Algorithm: " << perf_db[0].solver_id << " , " << perf_db[0].workspace
                                            << ", "
                                            << perf_db[0].time);
 }
