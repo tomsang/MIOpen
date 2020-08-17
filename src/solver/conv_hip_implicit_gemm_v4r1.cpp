@@ -40,8 +40,6 @@ namespace solver {
 
 bool ConvHipImplicitGemmV4R1Fwd::IsApplicable(const ConvolutionContext& ctx) const
 {
-    if(ctx.skip_solutions_that_take_long_time_to_build_and_have_narrow_coverage)
-        return false;
     if(!ctx.direction.IsForward())
         return false;
     if(!ctx.use_hip_kernels)
@@ -70,8 +68,6 @@ bool ConvHipImplicitGemmV4R1Fwd::IsApplicable(const ConvolutionContext& ctx) con
 
 bool ConvHipImplicitGemmV4R1WrW::IsApplicable(const ConvolutionContext& ctx) const
 {
-    if(ctx.skip_solutions_that_take_long_time_to_build_and_have_narrow_coverage)
-        return false;
     if(!ctx.direction.IsBackwardWrW())
         return false;
     if(!ctx.use_hip_kernels)

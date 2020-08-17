@@ -30,20 +30,13 @@
 #include <miopen/generic_search.hpp>
 #include <miopen/hip_build_utils.hpp>
 #include "implicitgemm_util.hpp"
-/* this fix is for fp16 xdlops vectorizable kernels due to followings, we may revisit this fix after
-  compiler fix:
-  1. compiler issues(25% impact)
-  2. LDS write performance(75% impact)
-*/
-MIOPEN_DECLARE_ENV_VAR(
-    MIOPEN_DEBUG_CONV_IMPLICIT_GEMM_FWD_V4R4_XDLOPS_ADD_VECTOR_LOAD_GEMMN_TUNE_PARAM)
 
 namespace miopen {
 namespace solver {
 
 PerformanceImplicitGemmForwardV4R4Xdlops::PerformanceImplicitGemmForwardV4R4Xdlops()
     : PerformanceImplicitGemmForwardV4R4Xdlops::PerformanceImplicitGemmForwardV4R4Xdlops(
-          4, 4, 1, 4, 4, 1, false, false, 1)
+          4, 4, 1, 4, 4, 1, false, false)
 {
 }
 
@@ -55,8 +48,7 @@ PerformanceImplicitGemmForwardV4R4Xdlops::PerformanceImplicitGemmForwardV4R4Xdlo
     int GemmNPerWave_,
     int GemmKPack_,
     bool GemmAThreadCopyMoreGemmK_,
-    bool GemmBThreadCopyMoreGemmKPack_,
-    int GemmBThreadDataPerRead_GemmN_)
+    bool GemmBThreadCopyMoreGemmKPack_)
     : GemmMPerBlock(GemmMPerBlock_),
       GemmNPerBlock(GemmNPerBlock_),
       GemmKPerBlock(GemmKPerBlock_),
@@ -64,8 +56,7 @@ PerformanceImplicitGemmForwardV4R4Xdlops::PerformanceImplicitGemmForwardV4R4Xdlo
       GemmNPerWave(GemmNPerWave_),
       GemmKPack(GemmKPack_),
       GemmAThreadCopyMoreGemmK(GemmAThreadCopyMoreGemmK_),
-      GemmBThreadCopyMoreGemmKPack(GemmBThreadCopyMoreGemmKPack_),
-      GemmBThreadDataPerRead_GemmN(GemmBThreadDataPerRead_GemmN_)
+      GemmBThreadCopyMoreGemmKPack(GemmBThreadCopyMoreGemmKPack_)
 {
 }
 
@@ -80,8 +71,7 @@ operator==(const PerformanceImplicitGemmForwardV4R4Xdlops& other) const
         && GemmNPerWave == other.GemmNPerWave
         && GemmKPack == other.GemmKPack 
         && GemmAThreadCopyMoreGemmK  == other.GemmAThreadCopyMoreGemmK
-        && GemmBThreadCopyMoreGemmKPack  == other.GemmBThreadCopyMoreGemmKPack
-        && GemmBThreadDataPerRead_GemmN  == other.GemmBThreadDataPerRead_GemmN;
+        && GemmBThreadCopyMoreGemmKPack  == other.GemmBThreadCopyMoreGemmKPack;
     // clang-format on
 }
 
@@ -91,12 +81,6 @@ bool PerformanceImplicitGemmForwardV4R4Xdlops::SetNextValue()
     {
         // list performance parameters in reverse order, in order for tuning to iterate over the
         // range in normal order
-        if(miopen::IsEnabled(
-               MIOPEN_DEBUG_CONV_IMPLICIT_GEMM_FWD_V4R4_XDLOPS_ADD_VECTOR_LOAD_GEMMN_TUNE_PARAM{}))
-        {
-            if(!NextTwoPower<1, 8>(GemmBThreadDataPerRead_GemmN))
-                break;
-        }
         if(!NextFlag<false, true>(GemmBThreadCopyMoreGemmKPack))
             break;
         if(!NextFlag<false, false>(GemmAThreadCopyMoreGemmK))
@@ -127,7 +111,7 @@ void PerformanceImplicitGemmForwardV4R4Xdlops::EuristicInit(const ConvolutionCon
     auto get_euristic_config = [&](auto is_valid_func) {
         if(ctx.IsFp32())
         {
-            tmp = {256, 256, 8, 128, 128, 4, false, true, 1};
+            tmp = {256, 256, 8, 128, 128, 4, false, true};
 
             bool all_visited = false;
             do
@@ -136,8 +120,6 @@ void PerformanceImplicitGemmForwardV4R4Xdlops::EuristicInit(const ConvolutionCon
                 {
                     // list in reverse order of importance,
                     // and favor large GEMM
-                    if(!PreviousTwoPower<1, 8>(tmp.GemmBThreadDataPerRead_GemmN))
-                        break;
                     if(!PreviousTwoPower<1, 8>(tmp.GemmKPerBlock))
                         break;
                     if(!PreviousTwoPower<1, 4>(tmp.GemmKPack))
@@ -160,7 +142,8 @@ void PerformanceImplicitGemmForwardV4R4Xdlops::EuristicInit(const ConvolutionCon
         }
         else if(ctx.IsFp16())
         {
-            tmp              = {256, 256, 8, 128, 128, 8, false, true, 1};
+            tmp = {256, 256, 8, 128, 128, 8, false, true};
+
             bool all_visited = false;
             do
             {
@@ -168,8 +151,6 @@ void PerformanceImplicitGemmForwardV4R4Xdlops::EuristicInit(const ConvolutionCon
                 {
                     // list in reverse order of importance,
                     // and favor large GEMM
-                    if(!PreviousTwoPower<1, 8>(tmp.GemmBThreadDataPerRead_GemmN))
-                        break;
                     if(!PreviousTwoPower<1, 8>(tmp.GemmKPerBlock))
                         break;
                     if(!PreviousTwoPower<4, 8>(tmp.GemmKPack))
@@ -192,7 +173,7 @@ void PerformanceImplicitGemmForwardV4R4Xdlops::EuristicInit(const ConvolutionCon
         }
         else if(ctx.IsBfp16())
         {
-            tmp = {256, 256, 8, 128, 128, 8, false, true, 1};
+            tmp = {256, 256, 8, 128, 128, 8, false, true};
 
             bool all_visited = false;
             do
@@ -201,8 +182,6 @@ void PerformanceImplicitGemmForwardV4R4Xdlops::EuristicInit(const ConvolutionCon
                 {
                     // list in reverse order of importance,
                     // and favor large GEMM
-                    if(!PreviousTwoPower<1, 8>(tmp.GemmBThreadDataPerRead_GemmN))
-                        break;
                     if(!PreviousTwoPower<1, 8>(tmp.GemmKPerBlock))
                         break;
                     if(!PreviousTwoPower<2, 8>(tmp.GemmKPack))
@@ -461,28 +440,7 @@ PerformanceImplicitGemmForwardV4R4Xdlops::CalculateGemmBBlockCopyPerformancePara
         // calculate threadwise copy size
         auto data_per_thread_copy =
             std::max(1, (GemmKPerBlock * GemmNPerBlock * GemmKPack) / block_size);
-        if(miopen::IsEnabled(
-               MIOPEN_DEBUG_CONV_IMPLICIT_GEMM_FWD_V4R4_XDLOPS_ADD_VECTOR_LOAD_GEMMN_TUNE_PARAM{}))
-        {
-            if(ctx.IsFp16())
-            {
-                if(SrcDataPerRead_GemmN >= GemmBThreadDataPerRead_GemmN)
-                {
-                    SrcDataPerRead_GemmN = GemmBThreadDataPerRead_GemmN;
-                }
-                else
-                {
-                    MIOPEN_THROW("invalid performance parameter");
-                }
-            }
-            else
-            {
-                if(SrcDataPerRead_GemmN != GemmBThreadDataPerRead_GemmN)
-                {
-                    MIOPEN_THROW("invalid performance parameter");
-                }
-            }
-        }
+
         // make sure a thread can do a full vector load, at the cost that some threads
         // may not do threadwise copy at all
         data_per_thread_copy = lcm(data_per_thread_copy, SrcDataPerRead_GemmN);
@@ -492,6 +450,7 @@ PerformanceImplicitGemmForwardV4R4Xdlops::CalculateGemmBBlockCopyPerformancePara
 
         int data_per_thread_copy_gemmkpack = -1;
         int data_per_thread_copy_gemmk     = -1;
+
         if(GemmBThreadCopyMoreGemmKPack)
         {
             data_per_thread_copy_gemmkpack = gcd(GemmKPack, tmp);
@@ -506,11 +465,6 @@ PerformanceImplicitGemmForwardV4R4Xdlops::CalculateGemmBBlockCopyPerformancePara
         // vector write into LDS
         DstDataPerWrite_GemmKPack = gcd(DstDataPerWrite_GemmKPack, data_per_thread_copy_gemmkpack);
 
-        if(!(data_per_thread_copy_gemmkpack > 0 && data_per_thread_copy_gemmk > 0 &&
-             data_per_thread_copy_gemmn > 0))
-        {
-            MIOPEN_THROW("invalid performance parameter");
-        }
         if(!(GemmKPerBlock % data_per_thread_copy_gemmk == 0 &&
              GemmNPerBlock % data_per_thread_copy_gemmn == 0 &&
              GemmKPack % data_per_thread_copy_gemmkpack == 0))
@@ -775,34 +729,6 @@ bool PerformanceImplicitGemmForwardV4R4Xdlops::IsFastToBeUsedForTuning(
         }
     }
 
-    // DstDataPerWrite_GemmKPack should not be too small, otherwise too many ds_write instruction
-    // would cause bad performance
-    {
-        if(miopen::IsEnabled(
-               MIOPEN_DEBUG_CONV_IMPLICIT_GEMM_FWD_V4R4_XDLOPS_ADD_VECTOR_LOAD_GEMMN_TUNE_PARAM{}))
-        {
-            if(ctx.IsFp16())
-            {
-                int SrcDataPerRead_GemmN      = 0;
-                int DstDataPerWrite_GemmKPack = 0;
-                bool valid                    = false;
-                std::tie(std::ignore,
-                         std::ignore,
-                         std::ignore,
-                         SrcDataPerRead_GemmN,
-                         DstDataPerWrite_GemmKPack,
-                         valid) = CalculateGemmBBlockCopyPerformanceParameters(ctx);
-                if(valid)
-                {
-                    if((SrcDataPerRead_GemmN > 1) &&
-                       ((DstDataPerWrite_GemmKPack == 1) || (DstDataPerWrite_GemmKPack == 2)))
-                    {
-                        return false;
-                    }
-                }
-            }
-        }
-    }
     return true;
 }
 
@@ -981,9 +907,6 @@ int ConvHipImplicitGemmForwardV4R4Xdlops::RunAndMeasureSolution(const miopen::Ha
 
 bool ConvHipImplicitGemmForwardV4R4Xdlops::IsApplicable(const ConvolutionContext& ctx) const
 {
-    if(ctx.skip_solutions_that_take_long_time_to_build_and_have_narrow_coverage)
-        return false;
-
     if(!IsXdlopsSupport(ctx))
         return false;
 
