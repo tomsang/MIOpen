@@ -92,7 +92,7 @@ bool PerformanceImplicitGemmBwdV1R1Xdlops::SetNextValue()
             break;
         if(!NextTwoPower<4, 128>(GemmMPerWave))
             break;
-        if(!NextTwoPower<1, 8>(GemmKPerBlock))
+        if(!NextTwoPower<1, 4>(GemmKPerBlock))
             break;
         if(!NextTwoPower<4, 256>(GemmNPerBlock))
             break;
@@ -120,7 +120,7 @@ void PerformanceImplicitGemmBwdV1R1Xdlops::EuristicInit(const ConvolutionContext
                 {
                     // list in reverse order of importance,
                     // and favor large GEMM
-                    if(!PreviousTwoPower<1, 8>(tmp.GemmKPerBlock))
+                    if(!PreviousTwoPower<1, 4>(tmp.GemmKPerBlock))
                         break;
                     if(!PreviousTwoPower<1, 4>(tmp.GemmKPack))
                         break;

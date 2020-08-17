@@ -64,7 +64,7 @@ class CompileTimer
     void Log(const std::string& s1, const std::string& s2 = {})
     {
 #if MIOPEN_BUILD_DEV
-        MIOPEN_LOG_I2(
+        MIOPEN_LOG_I(
             s1 << (s2.empty() ? "" : " ") << s2 << " Compile Time, ms: " << timer.elapsed_ms());
 #else
         (void)s1;
