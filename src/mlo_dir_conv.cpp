@@ -115,6 +115,8 @@ mlo_construct_direct2D_fusion::FindSolution(const std::vector<miopen::solver::An
 
 static auto GetDirectSolvers()
 {
+    return miopen::solver::SolverContainer<>{};
+#if 0
     return miopen::solver::SolverContainer<miopen::solver::ConvAsm3x3U,
                                            miopen::solver::ConvAsm1x1U,
                                            miopen::solver::ConvAsm1x1UV2,
@@ -126,10 +128,14 @@ static auto GetDirectSolvers()
                                            miopen::solver::ConvOclDirectFwd3x3,
                                            miopen::solver::ConvOclDirectFwd1x1,
                                            miopen::solver::ConvOclDirectFwd>{};
+#endif
 }
 
 static auto GetImplicitGemmSolvers()
 {
+    return miopen::solver::SolverContainer<miopen::solver::ConvAsmImplicitGemmV4R1DynamicFwd_1x1,
+                                           miopen::solver::ConvAsmImplicitGemmV4R1DynamicFwd>{};
+#if 0
     return miopen::solver::SolverContainer<miopen::solver::ConvHipImplicitGemmForwardV4R4Xdlops,
                                            miopen::solver::ConvHipImplicitGemmV4R4GenXdlopsFwdFp32,
                                            miopen::solver::ConvHipImplicitGemmV4R4GenFwdXdlops,
@@ -142,10 +148,12 @@ static auto GetImplicitGemmSolvers()
                                            miopen::solver::ConvHipImplicitGemmBwdDataV4R1Xdlops,
                                            miopen::solver::ConvAsmImplicitGemmV4R1DynamicFwd_1x1,
                                            miopen::solver::ConvAsmImplicitGemmV4R1DynamicFwd>{};
+#endif
 }
 
 static auto GetWindogradSolvers()
 {
+    // These solvers are dynamic
     return miopen::solver::SolverContainer<miopen::solver::ConvBinWinograd3x3U,
                                            miopen::solver::ConvBinWinogradRxSf3x2,
                                            miopen::solver::ConvBinWinogradRxSf2x3,
@@ -154,14 +162,18 @@ static auto GetWindogradSolvers()
 
 static auto GetImplicitGemmWrWSolvers()
 {
+    return miopen::solver::SolverContainer<>{};
+#if 0
     return miopen::solver::SolverContainer<miopen::solver::ConvHipImplicitGemmV4R4GenXdlopsWrWFp32,
                                            miopen::solver::ConvHipImplicitGemmV4R4GenWrWXdlops,
                                            miopen::solver::ConvHipImplicitGemmV4R1WrW,
                                            miopen::solver::ConvHipImplicitGemmV4R4WrW>{};
+#endif
 }
 
 static auto GetWindogradWrWSolvers()
 {
+    // all are dynamic
     return miopen::solver::SolverContainer<miopen::solver::ConvBinWinogradRxS,
                                            miopen::solver::ConvBinWinogradRxSf2x3,
                                            miopen::solver::ConvWinograd3x3MultipassWrW<3, 2>,
@@ -181,6 +193,8 @@ static auto GetWindogradWrWSolvers()
 
 static auto GetBwdWrW2DSolvers()
 {
+    return miopen::solver::SolverContainer<>{};
+#if 0
     return miopen::solver::SolverContainer<miopen::solver::ConvAsmBwdWrW1x1,
                                            miopen::solver::ConvAsmBwdWrW3x3,
                                            miopen::solver::ConvOclBwdWrW2<1>,
@@ -191,6 +205,7 @@ static auto GetBwdWrW2DSolvers()
                                            miopen::solver::ConvOclBwdWrW2NonTunable,
                                            miopen::solver::ConvOclBwdWrW53,
                                            miopen::solver::ConvOclBwdWrW1x1>{};
+#endif
 }
 
 std::vector<miopen::solver::ConvSolution>
