@@ -128,6 +128,7 @@ set( MIOpen_Source
     reducetensor.cpp
     reducetensor_api.cpp
     include/miopen/buffer_info.hpp
+    ramdb.cpp
     include/miopen/temp_file.hpp
     include/miopen/bfloat16.hpp
     include/miopen/db.hpp
@@ -179,6 +180,7 @@ set( MIOpen_Source
     include/miopen/numeric.hpp
     include/miopen/reducetensor.hpp
     include/miopen/reduce_common.hpp
+    include/miopen/ramdb.hpp
     md_graph.cpp
     mdg_expr.cpp
     conv/invokers/gcn_asm_1x1u.cpp
