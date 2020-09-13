@@ -66,7 +66,7 @@ ReadonlyRamDb& ReadonlyRamDb::GetCached(const std::string& path,
     // These will be destroyed altogether with heap.
     auto instance = new ReadonlyRamDb{path};
     instances.emplace(path, instance);
-    instance->Prefetch(warn_if_unreadable);
+    instance->Prefetch(path, warn_if_unreadable);
     return *instance;
 }
 
