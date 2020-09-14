@@ -737,18 +737,21 @@ struct PerformanceImplicitGemmBwdDataV4R1Xdlops
 
     bool GemmAThreadCopyMoreGemmK;
     bool GemmBThreadCopyMoreGemmKPack;
+    int GemmAThreadDataPerRead_GemmM;
+    int GemmBThreadDataPerRead_GemmN;
+
     bool use_spare_set;
 
-    PerformanceImplicitGemmBwdDataV4R1Xdlops(int, int, int, int, int, int, bool, bool, bool);
+    PerformanceImplicitGemmBwdDataV4R1Xdlops(int, int, int, int, int, int, int, int,bool, bool, bool);
 
     PerformanceImplicitGemmBwdDataV4R1Xdlops()
-        : PerformanceImplicitGemmBwdDataV4R1Xdlops(-1, -1, -1, -1, -1, -1, false, false, false)
+        : PerformanceImplicitGemmBwdDataV4R1Xdlops(-1, -1, -1, -1, -1, -1, -1, -1, false, false, false)
     {
     }
 
     PerformanceImplicitGemmBwdDataV4R1Xdlops(
-        int a, int b, int c, int d, int e, int f, bool g, bool h)
-        : PerformanceImplicitGemmBwdDataV4R1Xdlops(a, b, c, d, e, f, g, h, false)
+        int a, int b, int c, int d, int e, int f, int g, int h, bool i, bool j)
+        : PerformanceImplicitGemmBwdDataV4R1Xdlops(a, b, c, d, e, f, g, h, i, j, false)
     {
     }
 
@@ -765,6 +768,8 @@ struct PerformanceImplicitGemmBwdDataV4R1Xdlops
         f(self.GemmKPACKSize, "GemmKPACKSize");
         f(self.GemmMPerWave, "GemmMPerWave");
         f(self.GemmNPerWave, "GemmNPerWave");
+        f(self.GemmAThreadDataPerRead_GemmM, "GemmAThreadDataPerRead_GemmM");
+        f(self.GemmBThreadDataPerRead_GemmN, "GemmBThreadDataPerRead_GemmN");
         f(self.GemmAThreadCopyMoreGemmK, "GemmAThreadCopyMoreGemmK");
         f(self.GemmBThreadCopyMoreGemmKPack, "GemmBThreadCopyMoreGemmKPack");
     }
