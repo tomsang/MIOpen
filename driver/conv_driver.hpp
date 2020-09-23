@@ -1289,21 +1289,26 @@ int ConvDriver<Tgpu, Tref>::FindForward(int& ret_algo_count,
     bool is_transform = IsInputTensorTransform();
     fwd_auxiliary.resume(wall_enabled);
     ResizeWorkspaceDev(ctx, ws_sizeof_find_fwd);
-    const auto rc = miopenFindConvolutionForwardAlgorithm(
-        GetHandle(),
-        (is_transform ? inputTensor_vect4 : inputTensor),
-        (is_transform ? in_vect4_dev->GetMem() : in_dev->GetMem()),
-        (is_transform ? weightTensor_vect4 : weightTensor),
-        (is_transform ? wei_vect4_dev->GetMem() : wei_dev->GetMem()),
-        convDesc,
-        outputTensor,
-        out_dev->GetMem(),
-        request_algo_count,
-        &ret_algo_count,
-        perf_results.data(),
-        workspace_dev != nullptr ? workspace_dev->GetMem() : nullptr,
-        ws_sizeof_find_fwd,
-        (inflags.GetValueInt("search") == 1) ? true : false);
+    int rc = 0;
+    for(auto idx  = 0; idx < 10; idx++)
+    {
+        std::cout << "Running find for the " << idx << " time" << std::endl;
+        rc = miopenFindConvolutionForwardAlgorithm(
+                GetHandle(),
+                (is_transform ? inputTensor_vect4 : inputTensor),
+                (is_transform ? in_vect4_dev->GetMem() : in_dev->GetMem()),
+                (is_transform ? weightTensor_vect4 : weightTensor),
+                (is_transform ? wei_vect4_dev->GetMem() : wei_dev->GetMem()),
+                convDesc,
+                outputTensor,
+                out_dev->GetMem(),
+                request_algo_count,
+                &ret_algo_count,
+                perf_results.data(),
+                workspace_dev != nullptr ? workspace_dev->GetMem() : nullptr,
+                ws_sizeof_find_fwd,
+                (inflags.GetValueInt("search") == 1) ? true : false);
+    }
     fwd_auxiliary.pause(wall_enabled);
     return rc;
 }

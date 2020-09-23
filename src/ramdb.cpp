@@ -311,7 +311,10 @@ bool RamDb::ValidateUnsafe()
 void RamDb::Prefetch()
 {
     if(DisableUserDbFileIO)
-        MIOPEN_THROW("Prefetch should never happen with disabled File IO");
+    {
+        //MIOPEN_THROW("Prefetch should never happen with disabled File IO");
+        return;
+    }
 
     Measure("Prefetch", [this]() {
         auto file = std::ifstream{GetFileName()};
