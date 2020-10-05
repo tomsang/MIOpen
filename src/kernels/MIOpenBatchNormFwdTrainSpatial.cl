@@ -304,15 +304,16 @@ MIOpenBatchNormFwdTrainSpatial(const __global _FLOAT* __restrict in,
 #endif
     barrier(CLK_LOCAL_MEM_FENCE | CLK_GLOBAL_MEM_FENCE);
 
-#ifndef __AMDGCN__
+//#ifndef __AMDGCN__
     local _FLOAT_ACCUM lcl_data_x[MIO_BN_LDS_SIZE];
     local _FLOAT_ACCUM lcl_data_y[MIO_BN_LDS_SIZE];
     lds_reduce2(&mean, &variance, (_FLOAT_ACCUM)INHW, lcl_data_x, lcl_data_y, lid);
-#else
+/*#else
     local _FLOAT_ACCUM lcl_data_x[MIO_BN_LDSGCN_SIZE];
     local _FLOAT_ACCUM lcl_data_y[MIO_BN_LDSGCN_SIZE];
     gcn_reduce2(&mean, &variance, (_FLOAT_ACCUM)INHW, lcl_data_x, lcl_data_y, lid);
 #endif
+*/
 
     // REDUCTION COMPLETE ---------------------------
     variance = mad(-mean, mean, variance);
