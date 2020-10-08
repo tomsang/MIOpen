@@ -74,9 +74,11 @@ inline bool ProduceCoV3()
 /// that builds OpenCL kernels, depending on compiler version etc.
 inline const std::string& GetCoV3Option(const bool enable)
 {
-    // These options are Ok for ROCm for a long time (since 2.5 or so):
-    static const std::string opt_enable{"-Xclang -target-feature -Xclang +code-object-v3"};
-    static const std::string opt_disable{}; // CO v2 is compiler default.
+    // TODO: -m[no-]code-object-v3 options are being deprecated.
+    // New option that is currently available:
+    //   - --amdhsa-code-object-version=<num>, where <num> is 2, 3, or 4.
+    static const std::string opt_enable{"-mcode-object-v3"};
+    static const std::string opt_disable{"-mno-code-object-v3"};
     if(enable)
         return opt_enable;
     else
