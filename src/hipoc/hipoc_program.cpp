@@ -72,17 +72,15 @@ inline bool ProduceCoV3()
 
 /// Returns option for enabling/disabling CO v3 generation for the compiler
 /// that builds OpenCL kernels, depending on compiler version etc.
-inline const std::string& GetCoV3Option(const bool enable)
+inline const std::string& GetCoV3Option(const bool enable_v3)
 {
-    // TODO: -m[no-]code-object-v3 options are being deprecated.
-    // New option that is currently available:
-    //   - --amdhsa-code-object-version=<num>, where <num> is 2, 3, or 4.
-    static const std::string opt_enable{"-mcode-object-v3"};
-    static const std::string opt_disable{"-mno-code-object-v3"};
-    if(enable)
-        return opt_enable;
+    static const std::string opt_enable_v3{"-mllvm --amdhsa-code-object-version=3"};
+    static const std::string opt_enable_v2{"-mllvm --amdhsa-code-object-version=2"};
+
+    if(enable_v3)
+        return opt_enable_v3;
     else
-        return opt_disable;
+        return opt_enable_v2;
 }
 } // namespace
 #endif
