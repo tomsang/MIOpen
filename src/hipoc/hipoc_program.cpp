@@ -67,7 +67,7 @@ inline bool ProduceCodeObjectV2()
     // Otherwise, let's assume that OpenCL kernels shall be compiled to
     // CO v2 format by default prior to ROCm 3.0. The simplest way to find out
     // this right now is checking the HIP compiler version string.
-    return (HipCompilerVersion() < external_tool_version_t{3, 0, -1});
+    return !(HipCompilerVersion() >= external_tool_version_t{3, 0, -1});
 }
 
 /// Returns option for enabling/disabling CO v2 generation for the compiler
