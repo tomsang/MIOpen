@@ -227,6 +227,7 @@ set( MIOpen_Source
     solver/conv_hip_implicit_gemm_bwd_data_v1r1.cpp
     solver/conv_hip_implicit_gemm_bwd_data_v4r1.cpp
     solver/conv_hip_implicit_gemm_bwd_data_v4r1_xdlops.cpp
+    solver/conv_hip_implicit_gemm_bwd_data_v4r2_xdlops.cpp
     solver/conv_asm_implicit_gemm_v4r1_dynamic.cpp
     solver/conv_asm_implicit_gemm_wrw_v4r1_dynamic.cpp
     solver/conv_asm_implicit_gemm_wrw_gtc_dynamic_xdlops.cpp
