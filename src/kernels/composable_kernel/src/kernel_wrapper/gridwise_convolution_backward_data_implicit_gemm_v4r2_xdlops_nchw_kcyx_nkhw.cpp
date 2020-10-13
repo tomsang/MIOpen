@@ -37,7 +37,7 @@ extern "C" __global__
     constexpr index_t GridSize  = CK_PARAM_DEPENDENT_GRID_SIZE;
 
     constexpr index_t GemmMPerBlock = CK_PARAM_TUNABLE_GEMM_M_PER_BLOCK;
-    constexpr index_t GemmNPerBlock = CK_PARAM_TUNABLE_GEMM_N_PER_BLOCK;
+    constexpr index_t BPerBlock     = CK_PARAM_TUNABLE_GEMM_B_PER_BLOCK;
     constexpr index_t GemmKPerBlock = CK_PARAM_TUNABLE_GEMM_K_PER_BLOCK;
 
     constexpr index_t GroupCounts = CK_PARAM_PROBLEM_CONV_GROUP_COUNTS;
@@ -77,28 +77,13 @@ extern "C" __global__
         CK_PARAM_TUNABLE_GEMM_A_BLOCK_COPY_SRC_DATA_PER_READ_GEMM_M;
 
     // B matrix
-    constexpr index_t GemmBBlockCopyClusterLengths_GemmK =
-        CK_PARAM_TUNABLE_GEMM_B_BLOCK_COPY_CLUSTER_LENGTHS_GEMM_K;
-
-    constexpr index_t GemmBBlockCopyClusterLengths_GemmN =
-        CK_PARAM_TUNABLE_GEMM_B_BLOCK_COPY_CLUSTER_LENGTHS_GEMM_N;
-
-    constexpr index_t GemmBBlockCopyThreadSliceLengths_GemmK =
-        GemmKPerBlock / GemmBBlockCopyClusterLengths_GemmK;
-
-    constexpr index_t GemmBBlockCopyThreadSliceLengths_GemmN =
-        GemmNPerBlock / GemmBBlockCopyClusterLengths_GemmN;
-
-    constexpr index_t GemmBBlockCopySrcDataPerRead_GemmN =
-        CK_PARAM_TUNABLE_GEMM_B_BLOCK_COPY_SRC_DATA_PER_READ_GEMM_N;
+    constexpr index_t GemmBBlockCopySrcDataPerRead_B =
+        CK_PARAM_DEPENDENT_GEMM_B_BLOCK_COPY_SRC_DATA_PER_READ_B;
 
     constexpr index_t GemmKPACK = CK_PARAM_KPACK_LENGTH;
 
     constexpr index_t GemmABlockCopyClusterLengths_GemmKPACK =
         CK_PARAM_DEPENDENT_GEMM_A_BLOCK_COPY_CLUSTER_LENGTHS_GEMM_KPACK;
-
-    constexpr index_t GemmBBlockCopyClusterLengths_GemmKPACK =
-        CK_PARAM_DEPENDENT_GEMM_B_BLOCK_COPY_CLUSTER_LENGTHS_GEMM_KPACK;
 
     // A matrix
 
@@ -122,27 +107,44 @@ extern "C" __global__
 
     // B matrix
 
-    constexpr index_t GemmBBlockCopyThreadSliceLengths_GemmKPACK =
-        GemmKPACK / GemmBBlockCopyClusterLengths_GemmKPACK;
+    constexpr index_t GemmBBlockCopyClusterLengths_GemmK =
+        CK_PARAM_TUNABLE_GEMM_B_BLOCK_COPY_CLUSTER_LENGTHS_GEMM_K;
+    constexpr index_t GemmBBlockCopyClusterLengths_B =
+        CK_PARAM_DEPENDENT_GEMM_B_BLOCK_COPY_CLUSTER_LENGTHS_GEMM_B;
+    constexpr index_t GemmBBlockCopyClusterLengths_GemmKPack =
+        CK_PARAM_DEPENDENT_GEMM_B_BLOCK_COPY_CLUSTER_LENGTHS_GEMM_KPACK;
 
-    using GemmBBlockCopyThreadSliceLengths_GemmG_GemmK_GemmN_GemmKPACK =
-        Sequence<1,
-                 GemmBBlockCopyThreadSliceLengths_GemmK,
-                 GemmBBlockCopyThreadSliceLengths_GemmN,
-                 GemmBBlockCopyThreadSliceLengths_GemmKPACK>;
+    constexpr index_t GemmBBlockCopyThreadSliceLengths_GemmK =
+        GemmKPerBlock / GemmBBlockCopyClusterLengths_GemmK;
+    constexpr index_t GemmBBlockCopyThreadSliceLengths_B =
+        BPerBlock / GemmBBlockCopyClusterLengths_B;
+    constexpr index_t GemmBBlockCopyThreadSliceLengths_GemmKPack =
+        GemmKPACK / GemmBBlockCopyClusterLengths_GemmKPack;
 
-    using GemmBBlockCopyThreadClusterLengths_GemmG_GemmK_GemmN_GemmKPACK =
+
+    using GemmBBlockCopyClusterLengths_GemmG_GemmK_NWaves_B_GemmKPack =
         Sequence<1,
                  GemmBBlockCopyClusterLengths_GemmK,
-                 GemmBBlockCopyClusterLengths_GemmN,
-                 GemmBBlockCopyClusterLengths_GemmKPACK>;
+                 1,
+                 GemmBBlockCopyClusterLengths_B,
+                 GemmBBlockCopyClusterLengths_GemmKPack>;
 
     constexpr index_t GemmBBlockCopyDstDataPerWrite_GemmKPACK =
         CK_PARAM_TUNABLE_GEMM_B_BLOCK_COPY_DST_DATA_PER_WRITE_GEMM_KPACK;
 
+
+    constexpr index_t NWaves        = CK_PARAM_TUNABLE_NWAVES;
+        using GemmBBlockCopySubLengths_GemmG_GemmK_NWaves_B_GemmKPack =
+        Sequence<1,
+                 GemmBBlockCopyThreadSliceLengths_GemmK,
+                 NWaves,
+                 GemmBBlockCopyThreadSliceLengths_B,
+                 GemmBBlockCopyThreadSliceLengths_GemmKPack>;    
+
     // C matrix
     constexpr auto GemmMPerWave = CK_PARAM_GEMM_M_PER_WAVE;
-    constexpr auto GemmNPerWave = CK_PARAM_GEMM_N_PER_WAVE;
+    constexpr auto BPerWave      = CK_PARAM_TUNABLE_GEMM_B_PER_WAVE;
+
 
     constexpr auto gridwise_conv_bwd_data =
         GridwiseConvolutionBackwardDataImplicitGemm_v4r2_xdlops_gnchw_gkcyx_gnkhw<
@@ -158,19 +160,21 @@ extern "C" __global__
             InLeftPads,
             InRightPads,
             GemmMPerBlock,
-            GemmNPerBlock,
+            BPerBlock,
             GemmKPerBlock,
             GemmKPACK,
             GemmMPerWave,
-            GemmNPerWave,
+            BPerWave,
+            NWaves,
             GemmABlockCopyThreadSliceLengths_GemmG_GemmK_GemmM_GemmKPACK,
             GemmABlockCopyThreadClusterLengths_GemmG_GemmK_GemmM_GemmKPACK,
             GemmABlockCopySrcDataPerRead_GemmM,
             GemmABlockCopyDstDataPerWrite_GemmKPACK,
-            GemmBBlockCopyThreadSliceLengths_GemmG_GemmK_GemmN_GemmKPACK,
-            GemmBBlockCopyThreadClusterLengths_GemmG_GemmK_GemmN_GemmKPACK,
-            GemmBBlockCopySrcDataPerRead_GemmN,
+            GemmBBlockCopySubLengths_GemmG_GemmK_NWaves_B_GemmKPack,
+            GemmBBlockCopyClusterLengths_GemmG_GemmK_NWaves_B_GemmKPack,
+            GemmBBlockCopySrcDataPerRead_B,
             GemmBBlockCopyDstDataPerWrite_GemmKPACK>{};
+
 
     // this decides which GEMM will be called
     constexpr index_t GemmId = CK_PARAM_GEMM_ID;
