@@ -88,9 +88,9 @@ struct GridwiseBatchGemmXdlops_gkmkpack_gknkpack_gmn_v2
                         CFloat* const __restrict__ p_c_global) const
     {
         constexpr auto True = integral_constant<bool, true>{};
-        constexpr auto I0 = Number<0>{};
-        constexpr auto I1 = Number<1>{};
-        constexpr auto I2 = Number<2>{};
+        constexpr auto I0   = Number<0>{};
+        constexpr auto I1   = Number<1>{};
+        constexpr auto I2   = Number<2>{};
 
         constexpr auto a_g_k_m_kpack_global_desc = AGlobalDesc{};
         constexpr auto b_g_k_n_kpack_global_desc = BGlobalDesc{};
@@ -149,8 +149,9 @@ struct GridwiseBatchGemmXdlops_gkmkpack_gknkpack_gmn_v2
             AddressSpace::Global,
             AddressSpace::Vgpr,
             AddressSpace::Lds,
-            InMemoryDataOperation::Set>(make_multi_index(g_block_data_on_global, 0, m_block_data_on_global, 0),
-                                        make_multi_index(0, 0, 0, 0));
+            InMemoryDataOperation::Set>(
+            make_multi_index(g_block_data_on_global, 0, m_block_data_on_global, 0),
+            make_multi_index(0, 0, 0, 0));
 
         constexpr auto b_g_k_n_kpack_block_desc = make_native_tensor_descriptor_aligned(
             Sequence<1, KPerBlock, NPerBlock, KPack>{}, Number<max_align>{});
@@ -173,8 +174,9 @@ struct GridwiseBatchGemmXdlops_gkmkpack_gknkpack_gmn_v2
             AddressSpace::Global,
             AddressSpace::Vgpr,
             AddressSpace::Lds,
-            InMemoryDataOperation::Set>(make_multi_index(g_block_data_on_global, 0, n_block_data_on_global, 0),
-                                        make_multi_index(0, 0, 0, 0));
+            InMemoryDataOperation::Set>(
+            make_multi_index(g_block_data_on_global, 0, n_block_data_on_global, 0),
+            make_multi_index(0, 0, 0, 0));
 
         // GEMM definition
         // c_mtx += transpose(a_mtx) * b_mtx
@@ -323,10 +325,10 @@ struct GridwiseBatchGemmXdlops_gkmkpack_gknkpack_gmn_v2
                                                       CGlobalMemoryOp>(
                     make_multi_index(0, 0, 0, 0, 0),
                     make_multi_index(g_block_data_on_global,
-                     m_thread_data_on_global / (M2 * M1),
-                     m_thread_data_on_global % (M2 * M1) / M2,
-                     m_thread_data_on_global % M2,
-                     n_thread_data_on_global))
+                                     m_thread_data_on_global / (M2 * M1),
+                                     m_thread_data_on_global % (M2 * M1) / M2,
+                                     m_thread_data_on_global % M2,
+                                     n_thread_data_on_global))
                     .Run(c_thread_vec.n + i * BlkSize, p_c_global);
             }
         }
@@ -371,9 +373,9 @@ struct GridwiseBatchGemmXdlops_gkmkpack_gkn1bkpack_gmn_v2
                         CFloat* const __restrict__ p_c_global) const
     {
         constexpr auto True = integral_constant<bool, true>{};
-        constexpr auto I0 = Number<0>{};
-        constexpr auto I1 = Number<1>{};
-        constexpr auto I2 = Number<2>{};
+        constexpr auto I0   = Number<0>{};
+        constexpr auto I1   = Number<1>{};
+        constexpr auto I2   = Number<2>{};
 
         constexpr auto a_g_k_m_kpack_global_desc    = AGlobalDesc{};
         constexpr auto b_g_k_n1_b_kpack_global_desc = BGlobalDesc{};
@@ -435,8 +437,9 @@ struct GridwiseBatchGemmXdlops_gkmkpack_gkn1bkpack_gmn_v2
             AddressSpace::Global,
             AddressSpace::Vgpr,
             AddressSpace::Lds,
-            InMemoryDataOperation::Set>(make_multi_index(g_block_data_on_global, 0, m_block_data_on_global, 0),
-                                        make_multi_index(0, 0, 0, 0));
+            InMemoryDataOperation::Set>(
+            make_multi_index(g_block_data_on_global, 0, m_block_data_on_global, 0),
+            make_multi_index(0, 0, 0, 0));
 
         constexpr auto b_g_k_n1_b_kpack_block_desc = make_native_tensor_descriptor_aligned(
             Sequence<1, KPerBlock, in_N1, BPerBlock, KPack>{}, Number<max_align>{});
@@ -459,8 +462,9 @@ struct GridwiseBatchGemmXdlops_gkmkpack_gkn1bkpack_gmn_v2
             AddressSpace::Global,
             AddressSpace::Vgpr,
             AddressSpace::Lds,
-            InMemoryDataOperation::Set>(make_multi_index(g_block_data_on_global, 0, 0, b_block_data_on_global, 0),
-                                        make_multi_index(0, 0, 0, 0, 0));
+            InMemoryDataOperation::Set>(
+            make_multi_index(g_block_data_on_global, 0, 0, b_block_data_on_global, 0),
+            make_multi_index(0, 0, 0, 0, 0));
 
         // GEMM definition
         // c_mtx += transpose(a_mtx) * b_mtx
@@ -610,10 +614,10 @@ struct GridwiseBatchGemmXdlops_gkmkpack_gkn1bkpack_gmn_v2
                                                       CGlobalMemoryOp>(
                     make_multi_index(0, 0, 0, 0, 0),
                     make_multi_index(g_block_data_on_global,
-                     m_thread_data_on_global / (M2 * M1),
-                     m_thread_data_on_global % (M2 * M1) / M2,
-                     m_thread_data_on_global % M2,
-                     n_thread_data_on_global))
+                                     m_thread_data_on_global / (M2 * M1),
+                                     m_thread_data_on_global % (M2 * M1) / M2,
+                                     m_thread_data_on_global % M2,
+                                     n_thread_data_on_global))
                     .Run(c_thread_vec.n + i * BlkSize, p_c_global);
             }
         }
