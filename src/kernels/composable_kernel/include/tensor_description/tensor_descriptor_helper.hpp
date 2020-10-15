@@ -64,10 +64,10 @@ template <typename LowerTensorDescriptor,
           index_t... LowerDimensionIds,
           index_t... UpperDimensionIds>
 __host__ __device__ constexpr auto
-    reorder_transformed_tensor_descriptor_impl(LowerTensorDescriptor,
-                                               Sequence<LowerLengths...>,
-                                               Sequence<LowerDimensionIds...>,
-                                               Sequence<UpperDimensionIds...>)
+reorder_transformed_tensor_descriptor_impl(LowerTensorDescriptor,
+                                           Sequence<LowerLengths...>,
+                                           Sequence<LowerDimensionIds...>,
+                                           Sequence<UpperDimensionIds...>)
 {
     return TransformedTensorDescriptor<LowerTensorDescriptor,
                                        Tuple<PassThrough<LowerLengths>...>,
@@ -78,7 +78,7 @@ __host__ __device__ constexpr auto
 // reorder a NativeTensorDescriptor
 template <typename... Ts, typename MapLower2Upper>
 __host__ __device__ constexpr auto
-    reorder_tensor_descriptor_given_lower2upper(NativeTensorDescriptor<Ts...>, MapLower2Upper)
+reorder_tensor_descriptor_given_lower2upper(NativeTensorDescriptor<Ts...>, MapLower2Upper)
 {
     static_assert(is_valid_sequence_map<MapLower2Upper>{},
                   "wrong! MapLower2Upper is not a valid map");
@@ -96,7 +96,7 @@ __host__ __device__ constexpr auto
 // reorder a TransformedTensorDescriptor
 template <typename... Ts, typename MapLower2Upper>
 __host__ __device__ constexpr auto
-    reorder_tensor_descriptor_given_lower2upper(TransformedTensorDescriptor<Ts...>, MapLower2Upper)
+reorder_tensor_descriptor_given_lower2upper(TransformedTensorDescriptor<Ts...>, MapLower2Upper)
 {
     static_assert(is_valid_sequence_map<MapLower2Upper>{},
                   "wrong! MapLower2Upper is not a valid map");
@@ -171,66 +171,6 @@ __host__ __device__ constexpr auto unfold_tensor_descriptor(NativeTensorDescript
 
     return make_native_tensor_descriptor(new_lengths, new_strides);
 }
-
-// a cluster map 1d index to N-d index
-template <typename Lengths, typename ArrangeOrder>
-struct ClusterDescriptor
-{
-    static constexpr index_t nDim = Lengths::Size();
-
-    static constexpr auto mDesc = transform_tensor_descriptor(
-        make_native_tensor_descriptor_packed(Lengths{}),
-        make_tuple(Merge<decltype(Lengths::ReorderGivenNew2Old(ArrangeOrder{}))>{}),
-        make_tuple(ArrangeOrder{}),
-        make_tuple(Sequence<0>{}));
-
-    __host__ __device__ constexpr ClusterDescriptor()
-    {
-        static_assert(Lengths::Size() == nDim && ArrangeOrder::Size() == nDim,
-                      "wrong! size not the same");
-
-        static_assert(is_valid_sequence_map<ArrangeOrder>{}, "wrong! ArrangeOrder is wrong");
-    }
-
-    __host__ __device__ static constexpr index_t GetElementSize() { return mDesc.GetElementSize(); }
-
-    __host__ __device__ static constexpr auto CalculateClusterIndex(index_t idx_1d)
-    {
-        return mDesc.CalculateLowerIndex(MultiIndex<1>{idx_1d});
-    }
-};
-
-template <typename Lengths,
-          typename ArrangeOrder = typename arithmetic_sequence_gen<0, Lengths::Size(), 1>::type>
-__host__ __device__ constexpr auto make_cluster_descriptor(
-    Lengths, ArrangeOrder order = typename arithmetic_sequence_gen<0, Lengths::Size(), 1>::type{})
-{
-    return ClusterDescriptor<Lengths, decltype(order)>{};
-}
-
-template <index_t... Ns>
-__host__ __device__ constexpr auto make_passthrough_tuple(Sequence<Ns...>)
-{
-    return make_tuple(PassThrough<Ns>{}...);
-};
-
-template <index_t... Ids>
-__host__ __device__ constexpr auto make_dimensions_tuple(Sequence<Ids...>)
-{
-    return make_tuple(Sequence<Ids>{}...);
-};
-
-template <typename Seq1, typename Seq2>
-__host__ __device__ constexpr auto make_2d_merge_transform_tuple(Seq1, Seq2)
-{
-    return make_tuple(Merge<Seq1>{}, Merge<Seq2>{});
-};
-
-template <typename Seq>
-__host__ __device__ constexpr auto make_1d_merge_transform_tuple(Seq)
-{
-    return make_tuple(Merge<Seq>{});
-};
 
 } // namespace ck
 #endif

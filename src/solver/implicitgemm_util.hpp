@@ -763,7 +763,7 @@ constexpr std::size_t get_lds_max_number_of_byte() { return 65536; }
 
 static inline auto get_ck_common_compiler_flag(const ConvolutionContext& ctx)
 {
-    auto compiler_flag = std::string(" --std=c++14");
+    auto compiler_flag = std::string(" --std=c++17");
 
     // HIP version
     compiler_flag +=
