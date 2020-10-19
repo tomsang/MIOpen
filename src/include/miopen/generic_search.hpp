@@ -479,6 +479,7 @@ auto GenericSearch(const Solver s, const Context& context, const AnyInvokeParams
     if(compile_and_run == "0")
     {
         std::vector<Program> programs = PrecompileKernels(profile_h, kernels);
+        MIOPEN_THROW("Search skipped");
     }
 
     MIOPEN_LOG_W("Done: " << n_runs_total << '/' << n_failed << '/' << n_runs_total << ", best #"
