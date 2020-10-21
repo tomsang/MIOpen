@@ -73,6 +73,22 @@ class CompileTimer
     }
 };
 
+struct FunctionTimer
+{
+    Timer t;
+    std::string prompt;
+    FunctionTimer(const std::string& p) : prompt(p)
+    {
+        t.start();
+    }
+    ~FunctionTimer()
+    {
+        std::stringstream ss;
+        ss << prompt << " Time taken: " << t.elapsed_ms();
+        MIOPEN_LOG_I2(ss.str());
+    }
+};
+
 } // namespace miopen
 
 #endif // GUARD_MIOPEN_TIMER_HPP_

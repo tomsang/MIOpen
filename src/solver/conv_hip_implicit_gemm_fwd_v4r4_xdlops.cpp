@@ -121,6 +121,7 @@ bool PerformanceImplicitGemmForwardV4R4Xdlops::SetNextValue()
 
 void PerformanceImplicitGemmForwardV4R4Xdlops::EuristicInit(const ConvolutionContext& ctx)
 {
+    FunctionTimer ft{"PerformanceImplicitGemmForwardV4R4Xdlops::EuristicInit"};
     PerformanceImplicitGemmForwardV4R4Xdlops tmp;
 
     // loop over certain ranges of tuning parameter
