@@ -196,7 +196,7 @@ struct GridwiseConvolutionForwardImplicitGemm_v4r5_xdlops_nchw_kcyx_nkhw
             GemmBBlockCopySrcAccessOrder,
             GemmBBlockCopyDstAccessOrder,
             2, // Src vetor read diemsnion of B matrix is N0
-            2,
+            NWaves,
             GemmBBlockCopyDstDataPerWrite_GemmKPack,
             InMemoryDataOperation::Set,
             WorkgroupSchdOrder,
