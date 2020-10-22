@@ -1056,7 +1056,9 @@ template <index_t GridSize,
           index_t BBlockCopySrcDataPerRead,
           index_t BBlockCopyDstDataPerWrite_KPACK,
           InMemoryDataOperation CGlobalMemoryOp,
-          WorkgroupScheduleOrder WorkgroupSchdOrder>
+          WorkgroupScheduleOrder WorkgroupSchdOrder,
+          index_t ABlockCopySrcDataStride = 1,
+          index_t BBlockCopySrcDataStride = 1>
 struct GridwiseBatchGemmXdlops_gkmkpack_gkn1bkpack_gmn_v2
 {
     __device__ void Run(const ABFloat* const __restrict__ p_a_global,
@@ -1125,8 +1127,9 @@ struct GridwiseBatchGemmXdlops_gkmkpack_gkn1bkpack_gmn_v2
             AddressSpace::Global,
             AddressSpace::Vgpr,
             AddressSpace::Lds,
-            InMemoryDataOperation::Set>({g_block_data_on_global, 0, m_block_data_on_global, 0},
-                                        {0, 0, 0, 0});
+            InMemoryDataOperation::Set,
+            ABlockCopySrcDataStride>({g_block_data_on_global, 0, m_block_data_on_global, 0},
+                                     {0, 0, 0, 0});
 
         constexpr auto b_g_k_n1_b_kpack_block_desc = make_native_tensor_descriptor_aligned(
             Sequence<1, KPerBlock, in_N1, BPerBlock, KPack>{}, Number<max_align>{});
@@ -1149,8 +1152,9 @@ struct GridwiseBatchGemmXdlops_gkmkpack_gkn1bkpack_gmn_v2
             AddressSpace::Global,
             AddressSpace::Vgpr,
             AddressSpace::Lds,
-            InMemoryDataOperation::Set>({g_block_data_on_global, 0, 0, b_block_data_on_global, 0},
-                                        {0, 0, 0, 0, 0});
+            InMemoryDataOperation::Set,
+            BBlockCopySrcDataStride>({g_block_data_on_global, 0, 0, b_block_data_on_global, 0},
+                                     {0, 0, 0, 0, 0});
 
         // GEMM definition
         // c_mtx += transpose(a_mtx) * b_mtx

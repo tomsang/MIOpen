@@ -195,11 +195,13 @@ struct GridwiseConvolutionForwardImplicitGemm_v4r5_xdlops_nchw_kcyx_nkhw
             GemmBBlockCopyThreadClusterArrangeOrder,
             GemmBBlockCopySrcAccessOrder,
             GemmBBlockCopyDstAccessOrder,
-            3, // Src vetor read diemsnion of B matrix is B
-            GemmBBlockCopySrcDataPerRead_B,
+            2, // Src vetor read diemsnion of B matrix is N0
+            2,
             GemmBBlockCopyDstDataPerWrite_GemmKPack,
             InMemoryDataOperation::Set,
-            WorkgroupSchdOrder>{};
+            WorkgroupSchdOrder,
+            1,
+            N1 * C * Hi * Wi>{};
 
         gridwise_gemm.Run(p_wei_global, p_in_global, p_out_global);
     }
