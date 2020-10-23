@@ -41,13 +41,13 @@ struct NativeTensorCoordinate
 
     template <typename... Xs>
     __host__ __device__ constexpr NativeTensorCoordinate(Xs... xs)
-        : NativeTensorCoordinate(Index{xs...})
+        : NativeTensorCoordinate(make_multi_index(xs...))
     {
     }
 
     template <index_t... Xs>
     __host__ __device__ constexpr NativeTensorCoordinate(Sequence<Xs...>)
-        : NativeTensorCoordinate(Index{Xs...})
+        : NativeTensorCoordinate(make_mutli_index(Xs...))
     {
     }
 
@@ -270,7 +270,7 @@ struct TensorCoordinate
         MakeDummyTensorCoordinate(NativeTensorDescriptor<Ts...>)
     {
         return NativeTensorCoordinate<NativeTensorDescriptor<Ts...>>(
-            make_zero_array<index_t, TensorDesc::GetNumOfDimension()>());
+            make_zero_multi_index<TensorDesc::GetNumOfDimension()>());
     }
 
     template <typename... Ts>
@@ -278,7 +278,7 @@ struct TensorCoordinate
         MakeDummyTensorCoordinate(TransformedTensorDescriptor<Ts...>)
     {
         return TransformedTensorCoordinate<TransformedTensorDescriptor<Ts...>>(
-            make_zero_array<index_t, TensorDesc::GetNumOfDimension()>());
+            make_zero_multi_index<TensorDesc::GetNumOfDimension()>());
     }
 
     public:

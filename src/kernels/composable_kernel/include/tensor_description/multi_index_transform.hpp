@@ -2,17 +2,9 @@
 #define CK_MULTI_INDEX_TRANSFORM_HPP
 
 #include "common_header.hpp"
+#include "multi_index.hpp"
 
 namespace ck {
-
-template <index_t N>
-using MultiIndex = Array<index_t, N>;
-
-template <typename... Xs>
-__host__ __device__ constexpr auto make_multi_index(Xs... xs)
-{
-    return MultiIndex<sizeof...(Xs)>(xs...);
-}
 
 template <index_t Length>
 struct PassThrough
@@ -216,7 +208,7 @@ struct Merge
     {
         LowerIndex idx_low;
 
-        index_t itmp = idx_up[0];
+        index_t itmp = idx_up[Number<0>{}];
 
         constexpr auto pseudo_low_strides =
             reverse_inclusive_scan_sequence(
@@ -226,7 +218,7 @@ struct Merge
         static_for<0, nDimLow - 1, 1>{}(
             lambda_CalculateLowerIndex<decltype(pseudo_low_strides)>(itmp, idx_low));
 
-        idx_low(nDimLow - 1) = itmp / pseudo_low_strides[nDimLow - 1];
+        idx_low(Number<nDimLow - 1>{}) = itmp / pseudo_low_strides[Number<nDimLow - 1>{}];
 
         return idx_low;
     }
@@ -240,9 +232,9 @@ struct Merge
                             const UpperIndex& /* idx_up_old */,
                             const LowerIndex& idx_low_old)
     {
-        if(idx_up_diff[0] == 0)
+        if(idx_up_diff[Number<0>{}] == 0)
         {
-            return make_zero_array<index_t, nDimLow>();
+            return make_zero_multi_index<nDimLow>();
         }
         else
         {
@@ -265,7 +257,7 @@ struct Merge
 
             LowerIndex idx_low_new = idx_low_old + idx_low_diff_tmp;
 
-            if(idx_up_diff[0] > 0)
+            if(idx_up_diff[Number<0>{}] > 0)
             {
                 // do carry check on each low dimension in reversed order
                 // starting from the first digit that changed
@@ -293,7 +285,7 @@ struct Merge
                 // highest dimension, no out-of-bound check
                 if(carry)
                 {
-                    ++idx_low_new(0);
+                    ++idx_low_new(Number<0>{});
                 }
             }
             else
@@ -324,7 +316,7 @@ struct Merge
                 // highest dimension, no out-of-bound check
                 if(borrow)
                 {
-                    --idx_low_new(0);
+                    --idx_low_new(Number<0>{});
                 }
             }
 
@@ -358,7 +350,7 @@ struct UnMerge
 
     __host__ __device__ static constexpr auto CalculateLowerIndex(const UpperIndex& idx_up)
     {
-        LowerIndex idx_low{0};
+        LowerIndex idx_low = make_multi_index(0);
 
         constexpr auto pseudo_up_strides =
             reverse_inclusive_scan_sequence(
@@ -366,7 +358,7 @@ struct UnMerge
                 .PushBack(Number<1>{});
 
         static_for<0, nDimUp, 1>{}(
-            [&](auto idim) { idx_low(0) += idx_up[idim] * pseudo_up_strides[idim]; });
+            [&](auto idim) { idx_low(Number<0>{}) += idx_up[idim] * pseudo_up_strides[idim]; });
 
         return idx_low;
     }
@@ -419,12 +411,10 @@ struct Embed
 
     __host__ __device__ static constexpr auto CalculateLowerIndex(const UpperIndex& idx_up)
     {
-        LowerIndex idx_low(Coefficients{}[nDimUp]);
+        LowerIndex idx_low = make_multi_index(Coefficients{}[Number<nDimUp>{}]);
 
-        for(index_t i = 0; i < nDimUp; ++i)
-        {
-            idx_low(0) += idx_up[i] * Coefficients{}[i];
-        }
+        static_for<0, nDimUp, 1>{}(
+            [&](auto i) { idx_low(Number<0>{}) += idx_up[i] * Coefficients{}[i]; });
 
         return idx_low;
     }
@@ -434,12 +424,10 @@ struct Embed
                             const UpperIndex& /* idx_up_old */,
                             const LowerIndex& /* idx_low_old */)
     {
-        LowerIndex idx_low_diff{0};
+        LowerIndex idx_low_diff = make_multi_index(0);
 
-        for(index_t i = 0; i < nDimUp; ++i)
-        {
-            idx_low_diff(0) += idx_up_diff[i] * Coefficients{}[i];
-        }
+        static_for<0, nDimUp, 1>{}(
+            [&](auto i) { idx_low_diff(Number<0>{}) += idx_up_diff[i] * Coefficients{}[i]; });
 
         return idx_low_diff;
     }
@@ -467,59 +455,60 @@ struct Embed
         for(index_t icorner = 0; icorner < ncorner; ++icorner)
         {
             // generate upper index for each corner
-            auto idx_up = make_zero_array<index_t, nDimUp>();
+            auto idx_up = make_zero_multi_index<nDimUp>();
 
             index_t itmp = icorner;
 
-            for(index_t idim = nDimUp - 1; idim >= 0; --idim)
-            {
-                idx_up(idim) = itmp % 2 == 0 ? 0 : UpperLengths::At(idim) - 1;
+            static_for<nDimUp, 0, -1>{}([&](auto idim) {
+                auto idim_m1    = idim - Number<1>{};
+                idx_up(idim_m1) = itmp % 2 == 0 ? 0 : UpperLengths::At(idim_m1) - 1;
                 itmp /= 2;
-            }
+            });
 
             // calculate lower index
             auto idx_low = CalculateLowerIndex(idx_up);
 
             // judge if lower index is valid
-            flag = flag && idx_low[0] >= 0 && idx_low[0] < LowerLength;
+            flag = flag && idx_low[Number<0>{}] >= 0 && idx_low[Number<0>{}] < LowerLength;
         }
 
         return flag;
     }
 };
 
-template <index_t LowerLength, index_t VectorSize>
-struct Vectorize
+// LowerLengths: Sequence<...>
+// LowerFreezePoint: Sequence<...>
+template <typename LowerLengths, typename LowerFreezePoint>
+struct Freeze
 {
-    using LowerIndex = MultiIndex<1>;
-    using UpperIndex = MultiIndex<1>;
+    static constexpr index_t nDimLow = LowerLengths::Size();
+    static constexpr index_t nDimUp  = 0;
 
-    __host__ __device__ constexpr Vectorize()
+    using LowerIndex = MultiIndex<nDimLow>;
+    using UpperIndex = MultiIndex<nDimUp>;
+
+    __host__ __device__ explicit constexpr Freeze()
     {
-        static_assert(VectorSize > 0 && LowerLength % VectorSize == 0,
-                      "wrong! cannot evenly divide");
+        // TODO: sanity check: LowerFreezePoint should be within range of LowerLengths
     }
 
-    __host__ __device__ static constexpr auto GetNumOfLowerDimension() { return Number<1>{}; }
+    __host__ __device__ static constexpr auto GetNumOfLowerDimension() { return Number<nDimLow>{}; }
 
-    __host__ __device__ static constexpr auto GetNumOfUpperDimension() { return Number<1>{}; }
+    __host__ __device__ static constexpr auto GetNumOfUpperDimension() { return Number<0>{}; }
 
-    __host__ __device__ static constexpr auto GetUpperLengths()
+    __host__ __device__ static constexpr auto GetUpperLengths() { return Sequence<>{}; }
+
+    __host__ __device__ static constexpr auto CalculateLowerIndex(const UpperIndex& /*idx_up*/)
     {
-        return Sequence<LowerLength / VectorSize>{};
-    }
-
-    __host__ __device__ static constexpr auto CalculateLowerIndex(const UpperIndex& idx_up)
-    {
-        return VectorSize * idx_up;
+        return to_multi_index(LowerFreezePoint{});
     }
 
     __host__ __device__ static constexpr auto
-    CalculateLowerIndexDiff(const UpperIndex& idx_up_diff,
+    CalculateLowerIndexDiff(const UpperIndex& /* idx_up_diff */,
                             const UpperIndex& /* idx_up_old */,
                             const LowerIndex& /* idx_low_old */)
     {
-        return VectorSize * idx_up_diff;
+        return make_zero_multi_index<nDimLow>();
     }
 
     __host__ __device__ static constexpr bool IsLinearTransform() { return true; }

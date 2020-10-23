@@ -16,8 +16,6 @@ MIOPEN_DECLARE_ENV_VAR(MIOPEN_DEBUG_CONV_IMPLICIT_GEMM_BLOCK_SYNC_LDS_WITHOUT_SY
 #define WORKAROUND_SWDEV_229277_227616_229195 1
 // workaround for unnecessary VGPA <--> AGRP data movement when using mfma LLVM intrinsic
 #define WORKAROUND_SWDEV_229564 1
-// workaround for buffer load/store fp16/bfp16 intrinsic bug
-#define WORKAROUND_SWDEV_231101 1
 // due to compiler bug, iGEMM xdlops kernels fail verification in some cases, if using "-O3" flag,
 // (but will pass verification with "-O1" flag)
 #define WORKAROUND_SWDEV_251757 1
@@ -783,7 +781,7 @@ constexpr std::size_t get_lds_max_number_of_byte() { return 65536; }
 
 static inline auto get_ck_common_compiler_flag(const ConvolutionContext& ctx)
 {
-    auto compiler_flag = std::string(" --std=c++14");
+    auto compiler_flag = std::string(" --std=c++17");
 
     // atomic-fadd
     compiler_flag += std::string(" -DCK_USE_AMD_BUFFER_ATOMIC_FADD=") +
@@ -798,8 +796,7 @@ static inline auto get_ck_common_compiler_flag(const ConvolutionContext& ctx)
 
     // workaround
     compiler_flag +=
-        std::string(" -DCK_WORKAROUND_SWDEV_229564=") + std::to_string(WORKAROUND_SWDEV_229564) +
-        std::string(" -DCK_WORKAROUND_SWDEV_231101=") + std::to_string(WORKAROUND_SWDEV_231101);
+        std::string(" -DCK_WORKAROUND_SWDEV_229564=") + std::to_string(WORKAROUND_SWDEV_229564);
 
     return compiler_flag;
 }
