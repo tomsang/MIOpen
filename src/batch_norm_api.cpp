@@ -29,6 +29,7 @@
 #include <miopen/logger.hpp>
 #include <miopen/tensor.hpp>
 #include <miopen/tensor_ops.hpp>
+#include <miopen/timer.hpp>
 
 #include <array>
 #include <initializer_list>
@@ -45,6 +46,7 @@ extern "C" miopenStatus_t miopenDeriveBNTensorDescriptor(miopenTensorDescriptor_
                                                          miopenBatchNormMode_t bn_mode)
 {
 
+    MIOPEN_FUNC_TIMER;
     MIOPEN_LOG_FUNCTION(derivedBnDesc, xDesc, bn_mode);
     return miopen::try_([&] {
         miopen::DeriveBNTensorDescriptor(
@@ -122,6 +124,7 @@ miopenBatchNormalizationForwardInference(miopenHandle_t handle,
                                          void* estimatedVariance,
                                          double epsilon)
 {
+    MIOPEN_FUNC_TIMER;
     MIOPEN_LOG_FUNCTION(handle,
                         bn_mode,
                         xDesc,
@@ -190,6 +193,7 @@ miopenBatchNormalizationForwardTraining(miopenHandle_t handle,
                                         void* resultSaveInvVariance)
 {
 
+    MIOPEN_FUNC_TIMER;
     MIOPEN_LOG_FUNCTION(handle,
                         bn_mode,
                         xDesc,
@@ -271,6 +275,7 @@ miopenBatchNormalizationBackward(miopenHandle_t handle,
                                  const void* savedMean,
                                  const void* savedInvVariance)
 {
+    MIOPEN_FUNC_TIMER;
     // bfloat16 not supported for batchnorm operation
     if(miopen::deref(xDesc).GetType() == miopenBFloat16 ||
        miopen::deref(dyDesc).GetType() == miopenBFloat16 ||

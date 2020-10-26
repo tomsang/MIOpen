@@ -38,6 +38,7 @@
 #include <miopen/solver.hpp>
 #include <miopen/tensor.hpp>
 #include <miopen/algorithm.hpp>
+#include <miopen/timer.hpp>
 
 #include <cassert>
 #include <cstddef>

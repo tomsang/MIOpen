@@ -28,6 +28,7 @@
 #include <miopen/handle.hpp>
 #include <miopen/logger.hpp>
 #include <miopen/tensor_ops.hpp>
+#include <miopen/timer.hpp>
 #include <algorithm>
 
 // TODO: Make miopenConvAlgoPerf_t loggable
@@ -227,6 +228,7 @@ miopenGetConvolutionNdForwardOutputDim(miopenConvolutionDescriptor_t convDesc,
 extern "C" miopenStatus_t miopenDestroyConvolutionDescriptor(miopenConvolutionDescriptor_t convDesc)
 {
     MIOPEN_LOG_FUNCTION(convDesc);
+    MIOPEN_FUNC_TIMER;
     return miopen::try_([&] { miopen_destroy_object(convDesc); });
 }
 
@@ -238,7 +240,7 @@ miopenConvolutionForwardGetWorkSpaceSize(miopenHandle_t handle,
                                          const miopenTensorDescriptor_t yDesc,
                                          size_t* workSpaceSize)
 {
-
+    MIOPEN_FUNC_TIMER;
     MIOPEN_LOG_FUNCTION(handle, wDesc, yDesc, convDesc, workSpaceSize);
     miopen::try_([&] {
         miopen::deref(workSpaceSize) =
@@ -355,7 +357,7 @@ miopenFindConvolutionForwardAlgorithm(miopenHandle_t handle,
                                       size_t workSpaceSize,
                                       bool exhaustiveSearch)
 {
-
+	MIOPEN_FUNC_TIMER;
     MIOPEN_LOG_FUNCTION(handle,
                         xDesc,
                         x,
@@ -428,6 +430,7 @@ extern "C" miopenStatus_t miopenConvolutionForward(miopenHandle_t handle,
                                                    size_t workSpaceSize)
 {
 
+    MIOPEN_FUNC_TIMER;
     MIOPEN_LOG_FUNCTION(handle,
                         alpha,
                         xDesc,
@@ -487,6 +490,7 @@ extern "C" miopenStatus_t miopenConvolutionForwardBias(miopenHandle_t handle,
                                                        void* y)
 {
 
+    MIOPEN_FUNC_TIMER;
     MIOPEN_LOG_FUNCTION(handle, alpha, bDesc, b, beta, yDesc, y);
 
     // bfloat16 not supported for bias operation
@@ -976,7 +980,7 @@ miopenFindConvolutionBackwardDataAlgorithm(miopenHandle_t handle,
                                            size_t workSpaceSize,
                                            bool exhaustiveSearch)
 {
-
+    MIOPEN_FUNC_TIMER;
     MIOPEN_LOG_FUNCTION(handle,
                         dyDesc,
                         dy,
@@ -1049,7 +1053,7 @@ miopenConvolutionBackwardData(miopenHandle_t handle,
                               void* workSpace,
                               size_t workSpaceSize)
 {
-
+    MIOPEN_FUNC_TIMER;
     MIOPEN_LOG_FUNCTION(handle,
                         alpha,
                         dyDesc,
@@ -1109,6 +1113,7 @@ miopenConvolutionBackwardDataGetWorkSpaceSize(miopenHandle_t handle,
                                               size_t* workSpaceSize)
 {
 
+    MIOPEN_FUNC_TIMER;
     MIOPEN_LOG_FUNCTION(handle, dyDesc, wDesc, convDesc, dxDesc, workSpaceSize);
     return miopen::try_([&] {
         miopen::deref(workSpaceSize) =
@@ -1133,6 +1138,7 @@ miopenConvolutionBackwardWeightsGetWorkSpaceSize(miopenHandle_t handle,
                                                  size_t* workSpaceSize)
 {
 
+    MIOPEN_FUNC_TIMER;
     MIOPEN_LOG_FUNCTION(handle, dyDesc, xDesc, convDesc, dwDesc, workSpaceSize);
     return miopen::try_([&] {
         miopen::deref(workSpaceSize) = miopen::deref(convDesc).BackwardWeightsGetWorkSpaceSize(
@@ -1162,6 +1168,7 @@ miopenFindConvolutionBackwardWeightsAlgorithm(miopenHandle_t handle,
                                               bool exhaustiveSearch)
 {
 
+    MIOPEN_FUNC_TIMER;
     MIOPEN_LOG_FUNCTION(handle,
                         dyDesc,
                         dy,
@@ -1215,6 +1222,7 @@ miopenConvolutionBackwardWeights(miopenHandle_t handle,
                                  size_t workSpaceSize)
 {
 
+    MIOPEN_FUNC_TIMER;
     MIOPEN_LOG_FUNCTION(handle,
                         alpha,
                         dyDesc,
@@ -1258,6 +1266,7 @@ extern "C" miopenStatus_t miopenConvolutionBackwardBias(miopenHandle_t handle,
                                                         const miopenTensorDescriptor_t dbDesc,
                                                         void* db)
 {
+    MIOPEN_FUNC_TIMER;
     MIOPEN_LOG_FUNCTION(handle, alpha, dyDesc, dy, beta, dbDesc, db);
     // bfloat16 not supported for bias operation
     if(miopen::deref(dyDesc).GetType() == miopenBFloat16 ||

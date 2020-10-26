@@ -27,6 +27,8 @@
 #define GUARD_MIOPEN_TIMER_HPP_
 
 #include <miopen/logger.hpp>
+#include <boost/timer/timer.hpp>
+#include <iostream>
 #include <chrono>
 
 namespace miopen {
@@ -72,6 +74,44 @@ class CompileTimer
 #endif
     }
 };
+class AutoProfiler {
+ public:
+  AutoProfiler(std::string name)
+      : m_name(std::move(name)),
+        m_beg(std::chrono::high_resolution_clock::now()) { }
+  ~AutoProfiler() {
+    auto end = std::chrono::high_resolution_clock::now();
+    auto dur = std::chrono::duration_cast<std::chrono::microseconds>(end - m_beg);
+    std::cout << m_name << " : " << dur.count() << " musec\n";
+  }
+ private:
+  std::string m_name;
+  std::chrono::time_point<std::chrono::high_resolution_clock> m_beg;
+};
+
+class FunctionTimer
+{
+    std::string prompt;
+    std::chrono::steady_clock::time_point begin;
+	public:
+    FunctionTimer(const std::string& p) : prompt(p), begin(std::chrono::steady_clock::now())
+    {
+	    std::cerr << std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - begin).count() << std::endl;
+    }
+    ~FunctionTimer()
+    {
+	    auto end = std::chrono::steady_clock::now();
+	    auto duration=std::chrono::duration_cast<std::chrono::milliseconds>(end-begin);
+	    std::cerr << prompt << " Time taken: " << duration.count()<<"ms"  << std::endl;
+    }
+};
+
+#if MIOPEN_TIME_FUNCTIONS
+#define MIOPEN_FUNC_TIMER 				\
+	miopen::AutoProfiler miopen_timer(miopen::LoggingParseFunction(__func__, __PRETTY_FUNCTION__))
+#else
+#define MIOPEN_FUNC_TIMER 
+#endif
 
 } // namespace miopen
 

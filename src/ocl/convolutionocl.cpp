@@ -49,6 +49,7 @@
 #include <miopen/conv/compiled_in_parameters.hpp>
 #include <miopen/conv/data_invoke_params.hpp>
 #include <miopen/conv/wrw_invoke_params.hpp>
+#include <miopen/timer.hpp>
 
 #if MIOPEN_USE_GEMM
 #include <miopen/gemm_v2.hpp>
