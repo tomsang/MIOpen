@@ -71,6 +71,7 @@ template <index_t GridSize,
           index_t ABlockCopySrcVectorReadDim,
           index_t ABlockCopySrcDataPerRead,
           index_t ABlockCopyDstDataPerWrite_KPACK,
+          index_t ABlockCopySrcScalarStrideInVector,
           class BBlockCopyThreadSliceLengths_G_K_N_KPACK,
           class BBlockCopyThreadClusterLengths_G_K_N_KPACK,
           class BBlockCopyThreadClusterArrangeOrder,
@@ -79,6 +80,7 @@ template <index_t GridSize,
           index_t BBlockCopySrcVectorReadDim,
           index_t BBlockCopySrcDataPerRead,
           index_t BBlockCopyDstDataPerWrite_KPACK,
+          index_t BBlockCopySrcScalarStrideInVector,
           InMemoryDataOperation CGlobalMemoryOp,
           WorkgroupScheduleOrder WorkgroupSchdOrder>
 struct GridwiseBatchGemmXdlops_gkmkpack_gknkpack_gmn_v2
@@ -149,14 +151,14 @@ struct GridwiseBatchGemmXdlops_gkmkpack_gknkpack_gmn_v2
             AddressSpace::Global,
             AddressSpace::Vgpr,
             AddressSpace::Lds,
-            InMemoryDataOperation::Set>(
-            make_multi_index(g_block_data_on_global, 0, m_block_data_on_global, 0),
-            make_multi_index(0, 0, 0, 0));
+            InMemoryDataOperation::Set,
+            ABlockCopySrcScalarStrideInVector,
+            1>(make_multi_index(g_block_data_on_global, 0, m_block_data_on_global, 0),
+               make_multi_index(0, 0, 0, 0));
 
         constexpr auto b_g_k_n_kpack_block_desc = make_native_tensor_descriptor_aligned(
             Sequence<1, KPerBlock, NPerBlock, KPack>{}, Number<max_align>{});
 
-        // input blockwise copy
         auto b_blockwise_copy = BlockwiseGenericTensorSliceCopy_v4<
             BlockSize,
             decltype(b_g_k_n_kpack_global_desc),
@@ -174,9 +176,10 @@ struct GridwiseBatchGemmXdlops_gkmkpack_gknkpack_gmn_v2
             AddressSpace::Global,
             AddressSpace::Vgpr,
             AddressSpace::Lds,
-            InMemoryDataOperation::Set>(
-            make_multi_index(g_block_data_on_global, 0, n_block_data_on_global, 0),
-            make_multi_index(0, 0, 0, 0));
+            InMemoryDataOperation::Set,
+            BBlockCopySrcScalarStrideInVector,
+            1>(make_multi_index(g_block_data_on_global, 0, n_block_data_on_global, 0),
+               make_multi_index(0, 0, 0, 0));
 
         // GEMM definition
         // c_mtx += transpose(a_mtx) * b_mtx

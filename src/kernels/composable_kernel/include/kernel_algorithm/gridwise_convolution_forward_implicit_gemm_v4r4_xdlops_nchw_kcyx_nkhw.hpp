@@ -180,6 +180,7 @@ struct GridwiseConvolutionForwardImplicitGemm_v4r4_xdlops_nchw_kcyx_nkhw
             3, // src vector read dimension of A matrix is GemmKPack
             GemmABlockCopySrcDataPerRead_GemmKPack,
             GemmABlockCopyDstDataPerWrite_GemmKPack,
+            1,
             GemmBBlockCopyThreadSliceLengths_GemmG_GemmK_GemmN_GemmKPack,
             GemmBBlockCopyThreadClusterLengths_GemmG_GemmK_GemmN_GemmKPack,
             GemmBBlockCopyThreadClusterArrangeOrder,
@@ -188,6 +189,7 @@ struct GridwiseConvolutionForwardImplicitGemm_v4r4_xdlops_nchw_kcyx_nkhw
             2, // Src vetor read diemsnion of B matrix is GemmN
             GemmBBlockCopySrcDataPerRead_GemmN,
             GemmBBlockCopyDstDataPerWrite_GemmKPack,
+            1,
             InMemoryDataOperation::Set,
             WorkgroupSchdOrder>{};
 

@@ -174,6 +174,7 @@ struct GridwiseConvolutionBackwardDataImplicitGemm_v1r1_xdlops_gnchw_gkcyx_gnkhw
             2,
             GemmABlockCopySrcDataPerRead_GemmM,
             GemmABlockCopyDstDataPerWrite_GemmKPACK,
+            1,
             GemmBBlockCopyThreadSliceLengths_GemmG_GemmK_GemmN_GemmKPACK,
             GemmBBlockCopyThreadClusterLengths_GemmG_GemmK_GemmN_GemmKPACK,
             Sequence<0, 1, 2, 3>,
@@ -182,6 +183,7 @@ struct GridwiseConvolutionBackwardDataImplicitGemm_v1r1_xdlops_gnchw_gkcyx_gnkhw
             2,
             GemmBBlockCopySrcDataPerRead_GemmN,
             GemmBBlockCopyDstDataPerWrite_GemmKPACK,
+            1,
             in_memory_op,
             WorkgroupSchdOrder>{};
 

@@ -699,7 +699,7 @@ struct PerformanceImplicitGemmBwdDataV4R1Xdlops
     int GemmMPerBlock; // 2^n[32..128]
     int GemmKPerBlock; // 2^n[4..16]
 
-    int GemmKPACKSize; // 2^[1..4]
+    int GemmKPack; // 2^[1..4]
 
     int GemmMPerWave;
     int GemmNPerWave;
@@ -707,7 +707,9 @@ struct PerformanceImplicitGemmBwdDataV4R1Xdlops
     bool GemmAThreadCopyMoreGemmK;
     bool GemmBThreadCopyMoreGemmKPack;
 
-    PerformanceImplicitGemmBwdDataV4R1Xdlops(int, int, int, int, int, int, bool, bool);
+    int GemmABlockCopyMaxDataPerThread_GemmM;
+
+    PerformanceImplicitGemmBwdDataV4R1Xdlops(int, int, int, int, int, int, bool, bool, int);
 
     PerformanceImplicitGemmBwdDataV4R1Xdlops();
     PerformanceImplicitGemmBwdDataV4R1Xdlops(bool) : PerformanceImplicitGemmBwdDataV4R1Xdlops() {}
@@ -720,16 +722,17 @@ struct PerformanceImplicitGemmBwdDataV4R1Xdlops
         f(self.GemmNPerBlock, "GemmNPerBlock");
         f(self.GemmMPerBlock, "GemmMPerBlock");
         f(self.GemmKPerBlock, "GemmKPerBlock");
-        f(self.GemmKPACKSize, "GemmKPACKSize");
+        f(self.GemmKPack, "GemmKPack");
         f(self.GemmMPerWave, "GemmMPerWave");
         f(self.GemmNPerWave, "GemmNPerWave");
         f(self.GemmAThreadCopyMoreGemmK, "GemmAThreadCopyMoreGemmK");
         f(self.GemmBThreadCopyMoreGemmKPack, "GemmBThreadCopyMoreGemmKPack");
+        f(self.GemmABlockCopyMaxDataPerThread_GemmM, "GemmABlockCopyMaxDataPerThread_GemmM");
     }
 
     std::tuple<int, bool> CalculateGridSize(const ConvolutionContext& ctx) const;
     std::tuple<std::size_t, bool> CalculateLdsNumberOfByte(const ConvolutionContext& ctx) const;
-    std::tuple<int, int, int, int, int, bool>
+    std::tuple<int, int, int, int, int, int, bool>
     CalculateGemmABlockCopyPerformanceParameters(const ConvolutionContext& ctx) const;
     std::tuple<int, int, int, int, int, bool>
     CalculateGemmBBlockCopyPerformanceParameters(const ConvolutionContext& ctx) const;

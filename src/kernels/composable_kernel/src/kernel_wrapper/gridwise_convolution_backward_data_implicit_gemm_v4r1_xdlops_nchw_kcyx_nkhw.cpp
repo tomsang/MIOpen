@@ -76,6 +76,9 @@ extern "C" __global__
     constexpr index_t GemmABlockCopySrcDataPerRead_GemmM =
         CK_PARAM_TUNABLE_GEMM_A_BLOCK_COPY_SRC_DATA_PER_READ_GEMM_M;
 
+    constexpr index_t GemmABlockCopySrcScalarStrideInVector_GemmM =
+        CK_PARAM_DEPENDENT_GEMM_A_BLOCK_COPY_SRC_SCALAR_STRIDE_IN_VECTOR_GEMM_M;
+
     // B matrix
     constexpr index_t GemmBBlockCopyClusterLengths_GemmK =
         CK_PARAM_TUNABLE_GEMM_B_BLOCK_COPY_CLUSTER_LENGTHS_GEMM_K;
@@ -101,7 +104,6 @@ extern "C" __global__
         CK_PARAM_DEPENDENT_GEMM_B_BLOCK_COPY_CLUSTER_LENGTHS_GEMM_KPACK;
 
     // A matrix
-
     constexpr index_t GemmABlockCopyThreadSliceLengths_GemmKPACK =
         GemmKPACK / GemmABlockCopyClusterLengths_GemmKPACK;
 
@@ -121,7 +123,6 @@ extern "C" __global__
         CK_PARAM_TUNABLE_GEMM_A_BLOCK_COPY_DST_DATA_PER_WRITE_GEMM_KPACK;
 
     // B matrix
-
     constexpr index_t GemmBBlockCopyThreadSliceLengths_GemmKPACK =
         GemmKPACK / GemmBBlockCopyClusterLengths_GemmKPACK;
 
@@ -167,6 +168,7 @@ extern "C" __global__
             GemmABlockCopyThreadClusterLengths_GemmG_GemmK_GemmM_GemmKPACK,
             GemmABlockCopySrcDataPerRead_GemmM,
             GemmABlockCopyDstDataPerWrite_GemmKPACK,
+            GemmABlockCopySrcScalarStrideInVector_GemmM,
             GemmBBlockCopyThreadSliceLengths_GemmG_GemmK_GemmN_GemmKPACK,
             GemmBBlockCopyThreadClusterLengths_GemmG_GemmK_GemmN_GemmKPACK,
             GemmBBlockCopySrcDataPerRead_GemmN,
