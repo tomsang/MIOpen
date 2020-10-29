@@ -87,6 +87,11 @@
 #define CK_WORKAROUND_SWDEV_241664 1
 #endif
 
+// using LLVM intrinsic for buffer_atomic_fadd OOB feature result in kernel crash
+#ifndef CK_WORKAROUND_LLVM_INTRISINC_BUFFER_ATOMIC_FADD_OOB_CHECK_ISSUE
+#define CK_WORKAROUND_LLVM_INTRISINC_BUFFER_ATOMIC_FADD_OOB_CHECK_ISSUE 1
+#endif
+
 namespace ck {
 
 enum AddressSpace

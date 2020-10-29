@@ -19,6 +19,8 @@ MIOPEN_DECLARE_ENV_VAR(MIOPEN_DEBUG_CONV_IMPLICIT_GEMM_BLOCK_SYNC_LDS_WITHOUT_SY
 // due to compiler bug, iGEMM xdlops kernels fail verification in some cases, if using "-O3" flag,
 // (but will pass verification with "-O1" flag)
 #define WORKAROUND_SWDEV_251757 1
+// using LLVM intrinsic for buffer_atomic_fadd OOB feature result in kernel crash
+#define WORKAROUND_LLVM_INTRISINC_BUFFER_ATOMIC_FADD_OOB_CHECK_ISSUE 1
 
 namespace miopen {
 
@@ -793,6 +795,11 @@ static inline auto get_ck_common_compiler_flag(const ConvolutionContext& ctx)
         (miopen::IsDisabled(MIOPEN_DEBUG_CONV_IMPLICIT_GEMM_BLOCK_SYNC_LDS_WITHOUT_SYNC_VMEM{})
              ? '0'
              : '1');
+
+    // buffer out-of-bound feature
+    compiler_flag +=
+        std::string(" -DCK_WORKAROUND_LLVM_INTRISINC_BUFFER_ATOMIC_FADD_OOB_CHECK_ISSUE=") +
+        std::to_string(WORKAROUND_LLVM_INTRISINC_BUFFER_ATOMIC_FADD_OOB_CHECK_ISSUE);
 
     // workaround
     compiler_flag +=

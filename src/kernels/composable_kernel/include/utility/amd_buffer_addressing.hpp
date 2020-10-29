@@ -934,7 +934,8 @@ __device__ void amd_buffer_atomic_add<float, 1>(const float* p_src_thread,
 
     index_t dst_thread_addr_offset = dst_thread_data_offset * sizeof(float);
 
-#if CK_EXPERIMENTAL_USE_BUFFER_ADDRESS_OOB_CHECK
+#if CK_EXPERIMENTAL_USE_BUFFER_ADDRESS_OOB_CHECK && \
+    (!CK_WORKAROUND_LLVM_INTRISINC_BUFFER_ATOMIC_FADD_OOB_CHECK_ISSUE)
     uint32_t dst_addr_shift = dst_thread_data_valid ? 0 : 0x7fffffff;
 
     __llvm_amdgcn_buffer_atomic_add_f32(*p_src_thread,
@@ -969,7 +970,8 @@ __device__ void amd_buffer_atomic_add<float, 2>(const float* p_src_thread,
 
     index_t dst_thread_addr_offset = dst_thread_data_offset * sizeof(float);
 
-#if CK_EXPERIMENTAL_USE_BUFFER_ADDRESS_OOB_CHECK
+#if CK_EXPERIMENTAL_USE_BUFFER_ADDRESS_OOB_CHECK && \
+    (!CK_WORKAROUND_LLVM_INTRISINC_BUFFER_ATOMIC_FADD_OOB_CHECK_ISSUE)
     uint32_t dst_addr_shift = dst_thread_data_valid ? 0 : 0x7fffffff;
 
     for(index_t i = 0; i < 2; ++i)
@@ -1014,7 +1016,8 @@ __device__ void amd_buffer_atomic_add<float, 4>(const float* p_src_thread,
 
     index_t dst_thread_addr_offset = dst_thread_data_offset * sizeof(float);
 
-#if CK_EXPERIMENTAL_USE_BUFFER_ADDRESS_OOB_CHECK
+#if CK_EXPERIMENTAL_USE_BUFFER_ADDRESS_OOB_CHECK && \
+    (!CK_WORKAROUND_LLVM_INTRISINC_BUFFER_ATOMIC_FADD_OOB_CHECK_ISSUE)
     uint32_t dst_addr_shift = dst_thread_data_valid ? 0 : 0x7fffffff;
 
     for(index_t i = 0; i < 4; ++i)
