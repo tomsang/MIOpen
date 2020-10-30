@@ -976,7 +976,6 @@ ConvSolution ConvHipImplicitGemmForwardV4R5Xdlops::GetSolution(
         get_ck_common_compiler_flag(ctx) +
         ctx.general_compile_options;
     // clang-format on
-
     result.invoker_factory = conv::MakeImplGemmDataInvokerFactory(ctx);
     result.construction_params.push_back(construction_parameters);
     return result;

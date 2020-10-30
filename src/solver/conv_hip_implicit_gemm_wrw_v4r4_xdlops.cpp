@@ -932,6 +932,8 @@ ConvSolution ConvHipImplicitGemmWrwV4R4Xdlops::GetSolution(
         get_ck_common_compiler_flag(ctx) +
         ctx.general_compile_options;
     // clang-format on
+    //
+    construction_parameters.comp_options += " -mllvm -amdgpu-enable-global-sgpr-addr";
 
     result.construction_params.push_back(construction_parameters);
 

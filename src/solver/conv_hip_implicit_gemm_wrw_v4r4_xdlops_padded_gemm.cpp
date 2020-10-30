@@ -976,6 +976,7 @@ ConvSolution ConvHipImplicitGemmWrwV4R4Xdlops_Padded_Gemm::GetSolution(
         ctx.general_compile_options;
     // clang-format on
 
+    construction_parameters.comp_options += " -mllvm -amdgpu-enable-global-sgpr-addr";
     result.construction_params.push_back(construction_parameters);
 
     const auto& conv       = ctx.conv_problem.GetConv();
