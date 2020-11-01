@@ -468,12 +468,12 @@ bool PerformanceImplicitGemmBwdDataV4R1Xdlops::IsFastToBeUsedForTuning(
     }
 
     // heuristic
-    if(ctx.isFp32())
+    if(ctx.IsFp32())
     {
         if(GemmABlockCopyMaxDataPerThread_GemmM > 4)
             return false;
     }
-    else
+    else if(ctx.IsFp16() or ctx.IsBfp16())
     {
         if(GemmABlockCopyMaxDataPerThread_GemmM > 8)
             return false;
