@@ -798,10 +798,13 @@ static inline auto get_ck_common_compiler_flag(const ConvolutionContext& ctx)
 
     // buffer out-of-bound feature
     compiler_flag +=
+        std::string(" -DCK_EXPERIMENTAL_USE_BUFFER_ADDRESS_OOB_CHECK=1");
+
+    // workaround
+    compiler_flag +=
         std::string(" -DCK_WORKAROUND_LLVM_INTRISINC_BUFFER_ATOMIC_FADD_OOB_CHECK_ISSUE=") +
         std::to_string(WORKAROUND_LLVM_INTRISINC_BUFFER_ATOMIC_FADD_OOB_CHECK_ISSUE);
 
-    // workaround
     compiler_flag +=
         std::string(" -DCK_WORKAROUND_SWDEV_229564=") + std::to_string(WORKAROUND_SWDEV_229564);
 

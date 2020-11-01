@@ -576,7 +576,7 @@ __device__ ushort2_t amd_buffer_load<ushort, 2>(const ushort* p_src_wave,
     *reinterpret_cast<float*>(&dst_data) = __llvm_amdgcn_buffer_load_f32(
         src_wave_buffer_resource.data, 0, src_addr_shift + src_thread_addr_offset, false, false);
 #else
-    if(src_thread_data_offset)
+    if(src_thread_data_valid)
     {
         *reinterpret_cast<float*>(&dst_data) = __llvm_amdgcn_buffer_load_f32(
             src_wave_buffer_resource.data, 0, src_thread_addr_offset, false, false);
