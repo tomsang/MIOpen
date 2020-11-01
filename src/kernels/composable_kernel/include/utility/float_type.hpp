@@ -7,6 +7,7 @@ namespace ck {
 // float
 typedef float float2_t __attribute__((ext_vector_type(2)));
 typedef float float4_t __attribute__((ext_vector_type(4)));
+typedef float float8_t __attribute__((ext_vector_type(8)));
 typedef float float16_t __attribute__((ext_vector_type(16)));
 typedef float float32_t __attribute__((ext_vector_type(32)));
 
@@ -15,11 +16,13 @@ typedef _Float16 half_t;
 typedef _Float16 half2_t __attribute__((ext_vector_type(2)));
 typedef _Float16 half4_t __attribute__((ext_vector_type(4)));
 typedef _Float16 half8_t __attribute__((ext_vector_type(8)));
+typedef _Float16 half16_t __attribute__((ext_vector_type(16)));
 
 // bfloat16
 typedef ushort ushort2_t __attribute__((ext_vector_type(2)));
 typedef ushort ushort4_t __attribute__((ext_vector_type(4)));
 typedef ushort ushort8_t __attribute__((ext_vector_type(8)));
+typedef ushort ushort16_t __attribute__((ext_vector_type(16)));
 
 struct c_vec32_4_t
 {
@@ -171,241 +174,97 @@ struct c_vec4_1_t
 template <class T, index_t N>
 struct vector_type
 {
-    typedef struct
-    {
-        T scalar[N];
-    } MemoryType;
+    //  typedef T MemoryType __attribute__((ext_vector_type(N)));
 };
 
 template <>
 struct vector_type<float, 1>
 {
     using MemoryType = float;
-
-    template <index_t I>
-    __host__ __device__ static void SetScalar(MemoryType& v, float s, Number<I>)
-    {
-        static_assert(I < 1, "wrong");
-        *(reinterpret_cast<float*>(&v) + I) = s;
-    }
 };
 
 template <>
 struct vector_type<float, 2>
 {
     using MemoryType = float2_t;
-
-    union DataType
-    {
-        MemoryType vector;
-        float scalar[2];
-    };
-
-    template <index_t I>
-    __host__ __device__ static void SetScalar(MemoryType& v, float s, Number<I>)
-    {
-        static_assert(I < 2, "wrong");
-        *(reinterpret_cast<float*>(&v) + I) = s;
-    }
-
-    __host__ __device__ static MemoryType Pack(float s0, float s1)
-    {
-        DataType data;
-        data.scalar[0] = s0;
-        data.scalar[1] = s1;
-        return data.vector;
-    }
 };
 
 template <>
 struct vector_type<float, 4>
 {
     using MemoryType = float4_t;
+};
 
-    __host__ __device__ static constexpr index_t GetSize() { return 4; }
+template <>
+struct vector_type<float, 8>
+{
+    using MemoryType = float8_t;
+};
 
-    template <index_t I>
-    __host__ __device__ static void SetScalar(MemoryType& v, float s, Number<I>)
-    {
-        static_assert(I < 4, "wrong");
-        *(reinterpret_cast<float*>(&v) + I) = s;
-    }
+template <>
+struct vector_type<float, 16>
+{
+    using MemoryType = float16_t;
 };
 
 template <>
 struct vector_type<half_t, 1>
 {
     using MemoryType = half_t;
-
-    template <index_t I>
-    __host__ __device__ static void SetScalar(MemoryType& v, half_t s, Number<I>)
-    {
-        static_assert(I < 1, "wrong");
-        *(reinterpret_cast<half_t*>(&v) + I) = s;
-    }
 };
 
 template <>
 struct vector_type<half_t, 2>
 {
     using MemoryType = half2_t;
-
-    union DataType
-    {
-        MemoryType vector;
-        half_t scalar[2];
-    };
-
-    template <index_t I>
-    __host__ __device__ static void SetScalar(MemoryType& v, half_t s, Number<I>)
-    {
-        static_assert(I < 2, "wrong");
-        *(reinterpret_cast<half_t*>(&v) + I) = s;
-    }
-
-    __host__ __device__ static MemoryType Pack(half_t s0, half_t s1)
-    {
-        DataType data;
-        data.scalar[0] = s0;
-        data.scalar[1] = s1;
-        return data.vector;
-    }
 };
 
 template <>
 struct vector_type<half_t, 4>
 {
     using MemoryType = half4_t;
-
-    union DataType
-    {
-        MemoryType vector;
-        half_t scalar[4];
-    };
-
-    template <index_t I>
-    __host__ __device__ static void SetScalar(MemoryType& v, half_t s, Number<I>)
-    {
-        static_assert(I < 4, "wrong");
-        *(reinterpret_cast<half_t*>(&v) + I) = s;
-    }
-
-    __host__ __device__ static MemoryType Pack(half_t s0, half_t s1, half_t s2, half_t s3)
-    {
-        DataType data;
-        data.scalar[0] = s0;
-        data.scalar[1] = s1;
-        data.scalar[2] = s2;
-        data.scalar[3] = s3;
-        return data.vector;
-    }
 };
 
 template <>
 struct vector_type<half_t, 8>
 {
     using MemoryType = half8_t;
+};
 
-    union DataType
-    {
-        MemoryType vector;
-        half_t scalar[8];
-    };
-
-    template <index_t I>
-    __host__ __device__ static void SetScalar(MemoryType& v, half_t s, Number<I>)
-    {
-        static_assert(I < 8, "wrong");
-        *(reinterpret_cast<half_t*>(&v) + I) = s;
-    }
+template <>
+struct vector_type<half_t, 16>
+{
+    using MemoryType = half16_t;
 };
 
 template <>
 struct vector_type<ushort, 1>
 {
     using MemoryType = ushort;
-
-    template <index_t I>
-    __host__ __device__ static void SetScalar(MemoryType& v, ushort s, Number<I>)
-    {
-        static_assert(I < 1, "wrong");
-        *(reinterpret_cast<ushort*>(&v) + I) = s;
-    }
 };
 
 template <>
 struct vector_type<ushort, 2>
 {
     using MemoryType = ushort2_t;
-
-    union DataType
-    {
-        MemoryType vector;
-        ushort scalar[2];
-    };
-
-    template <index_t I>
-    __host__ __device__ static void SetScalar(MemoryType& v, ushort s, Number<I>)
-    {
-        static_assert(I < 2, "wrong");
-        *(reinterpret_cast<ushort*>(&v) + I) = s;
-    }
-
-    __host__ __device__ static MemoryType Pack(ushort s0, ushort s1)
-    {
-        DataType data;
-        data.scalar[0] = s0;
-        data.scalar[1] = s1;
-        return data.vector;
-    }
 };
 
 template <>
 struct vector_type<ushort, 4>
 {
     using MemoryType = ushort4_t;
-
-    union DataType
-    {
-        MemoryType vector;
-        ushort scalar[4];
-    };
-
-    template <index_t I>
-    __host__ __device__ static void SetScalar(MemoryType& v, ushort s, Number<I>)
-    {
-        static_assert(I < 4, "wrong");
-        *(reinterpret_cast<ushort*>(&v) + I) = s;
-    }
-
-    __host__ __device__ static MemoryType Pack(ushort s0, ushort s1, ushort s2, ushort s3)
-    {
-        DataType data;
-        data.scalar[0] = s0;
-        data.scalar[1] = s1;
-        data.scalar[2] = s2;
-        data.scalar[3] = s3;
-        return data.vector;
-    }
 };
 
 template <>
 struct vector_type<ushort, 8>
 {
     using MemoryType = ushort8_t;
+};
 
-    union DataType
-    {
-        MemoryType vector;
-        ushort scalar[8];
-    };
-
-    template <index_t I>
-    __host__ __device__ static void SetScalar(MemoryType& v, ushort s, Number<I>)
-    {
-        static_assert(I < 8, "wrong");
-        *(reinterpret_cast<ushort*>(&v) + I) = s;
-    }
+template <>
+struct vector_type<ushort, 16>
+{
+    using MemoryType = ushort16_t;
 };
 
 // data type conversion
