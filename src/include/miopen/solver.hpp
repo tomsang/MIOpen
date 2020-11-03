@@ -562,7 +562,7 @@ struct PerformanceImplicitGemmMlir : Serializable<PerformanceImplicitGemmMlir>
     std::tuple<int, bool> CalculateGridSize(const ConvolutionContext& ctx) const;
     std::tuple<int, int, int, int, bool>
     CalculateBlockGemmPerformanceParameters(const ConvolutionContext& ctx) const;
-    std::tuple<int, int, int, int, bool>
+    std::tuple<int, bool>
     CalculateGemmABlockCopyPerformanceParameters(const ConvolutionContext& ctx) const;
     std::tuple<int, int, int, int, bool>
     CalculateGemmBBlockCopyPerformanceParameters(const ConvolutionContext& ctx) const;
@@ -619,11 +619,21 @@ struct PerformanceImplicitGemmV4R4WrW : Serializable<PerformanceImplicitGemmV4R4
     std::tuple<int, int, int, int, bool>
     CalculateBlockGemmPerformanceParameters(const ConvolutionContext& ctx) const;
     std::tuple<int, int, int, int, bool>
-    CalculateGemmABlockCopyPerformanceParameters(const ConvolutionContext& ctx) const;
+        // CalculateGemmABlockCopyPerformanceParameters(const ConvolutionContext& ctx) const;
+        static CalculateGemmABlockCopyPerformanceParameters(const ConvolutionContext& ctx,
+                                                            int BlockSize,
+                                                            int GemmMPerBlock,
+                                                            int GemmKPerBlock);
     std::tuple<int, int, int, int, bool>
-    CalculateGemmBBlockCopyPerformanceParameters(const ConvolutionContext& ctx) const;
+        // CalculateGemmBBlockCopyPerformanceParameters(const ConvolutionContext& ctx) const;
+        static CalculateGemmBBlockCopyPerformanceParameters(const ConvolutionContext& ctx,
+                                                            int BlockSize,
+                                                            int GemmNPerBlock,
+                                                            int GemmKPerBlock);
     std::tuple<int, bool>
-    CalculateGemmCThreadCopyPerformanceParameters(const ConvolutionContext& ctx) const;
+        // CalculateGemmCThreadCopyPerformanceParameters(const ConvolutionContext& ctx) const;
+        static CalculateGemmCThreadCopyPerformanceParameters(const ConvolutionContext& ctx,
+                                                             int GemmNPerThread);
     std::tuple<std::size_t, bool> CalculateLdsNumberOfByte(const ConvolutionContext& ctx) const;
     bool IsValidValue() const;
     bool IsValid(const ConvolutionContext& ctx) const;

@@ -172,7 +172,7 @@ PerformanceImplicitGemmV4R4WrW::CalculateBlockGemmPerformanceParameters(
 
 std::tuple<int, int, int, int, bool>
 PerformanceImplicitGemmV4R4WrW::CalculateGemmABlockCopyPerformanceParameters(
-    const ConvolutionContext&) const
+    const ConvolutionContext&, int BlockSize, int GemmMPerBlock, int GemmKPerBlock)
 {
     int ClusterLengths_GemmK  = 0;
     int ClusterLengths_GemmM  = 0;
@@ -220,7 +220,7 @@ PerformanceImplicitGemmV4R4WrW::CalculateGemmABlockCopyPerformanceParameters(
 
 std::tuple<int, int, int, int, bool>
 PerformanceImplicitGemmV4R4WrW::CalculateGemmBBlockCopyPerformanceParameters(
-    const ConvolutionContext& ctx) const
+    const ConvolutionContext& ctx, int BlockSize, int GemmNPerBlock, int GemmKPerBlock)
 {
     int ClusterLengths_GemmK  = 0;
     int ClusterLengths_GemmN  = 0;
@@ -342,7 +342,7 @@ PerformanceImplicitGemmV4R4WrW::CalculateGemmBBlockCopyPerformanceParameters(
 }
 
 std::tuple<int, bool> PerformanceImplicitGemmV4R4WrW::CalculateGemmCThreadCopyPerformanceParameters(
-    const ConvolutionContext& ctx) const
+    const ConvolutionContext& ctx, int GemmNPerThread)
 {
     int DstDataPerWrite_GemmN1 = amd_buffer_store_max_length<float>();
     try
@@ -376,7 +376,8 @@ PerformanceImplicitGemmV4R4WrW::CalculateLdsNumberOfByte(const ConvolutionContex
         int GemmABlockCopyDescDataPerWriteGemmM = 0;
         std::tie(
             std::ignore, std::ignore, std::ignore, GemmABlockCopyDescDataPerWriteGemmM, valid) =
-            CalculateGemmABlockCopyPerformanceParameters(ctx);
+            CalculateGemmABlockCopyPerformanceParameters(
+                ctx, BlockSize, GemmMPerBlock, GemmKPerBlock);
 
         if(!valid)
             MIOPEN_THROW("invalid performance parameter");
@@ -384,7 +385,8 @@ PerformanceImplicitGemmV4R4WrW::CalculateLdsNumberOfByte(const ConvolutionContex
         int GemmBBlockCopyDescDataPerWriteGemmN = 0;
         std::tie(
             std::ignore, std::ignore, std::ignore, GemmBBlockCopyDescDataPerWriteGemmN, valid) =
-            CalculateGemmBBlockCopyPerformanceParameters(ctx);
+            CalculateGemmBBlockCopyPerformanceParameters(
+                ctx, BlockSize, GemmNPerBlock, GemmKPerBlock);
 
         if(!valid)
             MIOPEN_THROW("invalid performance parameter");
@@ -453,20 +455,21 @@ bool PerformanceImplicitGemmV4R4WrW::IsValid(const ConvolutionContext& ctx) cons
 
     // check blockwise copy of A matrix
     std::tie(std::ignore, std::ignore, std::ignore, std::ignore, valid) =
-        CalculateGemmABlockCopyPerformanceParameters(ctx);
+        CalculateGemmABlockCopyPerformanceParameters(ctx, BlockSize, GemmMPerBlock, GemmKPerBlock);
 
     if(!valid)
         return false;
 
     // check blockwise copy of B matrix
     std::tie(std::ignore, std::ignore, std::ignore, std::ignore, valid) =
-        CalculateGemmBBlockCopyPerformanceParameters(ctx);
+        CalculateGemmBBlockCopyPerformanceParameters(ctx, BlockSize, GemmNPerBlock, GemmKPerBlock);
 
     if(!valid)
         return false;
 
     // check threadwise copy of C matrix
-    std::tie(std::ignore, valid) = CalculateGemmCThreadCopyPerformanceParameters(ctx);
+    std::tie(std::ignore, valid) =
+        CalculateGemmCThreadCopyPerformanceParameters(ctx, GemmNPerThread);
 
     if(!valid)
         return false;
@@ -690,16 +693,20 @@ ConvSolution ConvHipImplicitGemmV4R4WrW::GetSolution(const ConvolutionContext& c
              GemmABlockCopyClusterLengths_GemmM,
              GemmABlockCopySrcDataPerRead_GemmK,
              GemmABlockCopyDstDataPerWrite_GemmM,
-             std::ignore) = config.CalculateGemmABlockCopyPerformanceParameters(ctx);
+             std::ignore) =
+        config.CalculateGemmABlockCopyPerformanceParameters(
+            ctx, config.BlockSize, config.GemmMPerBlock, config.GemmKPerBlock);
 
     std::tie(GemmBBlockCopyClusterLengths_GemmK,
              GemmBBlockCopyClusterLengths_GemmN,
              GemmBBlockCopySrcDataPerRead_GemmK,
              GemmBBlockCopyDstDataPerWrite_GemmN,
-             std::ignore) = config.CalculateGemmBBlockCopyPerformanceParameters(ctx);
+             std::ignore) =
+        config.CalculateGemmBBlockCopyPerformanceParameters(
+            ctx, config.BlockSize, config.GemmNPerBlock, config.GemmKPerBlock);
 
     std::tie(GemmCThreadCopyDstDataPerWrite_GemmN1, std::ignore) =
-        config.CalculateGemmCThreadCopyPerformanceParameters(ctx);
+        config.CalculateGemmCThreadCopyPerformanceParameters(ctx, config.GemmNPerThread);
 
     // clang-format off
     construction_parameters.comp_options =

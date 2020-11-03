@@ -174,10 +174,21 @@ PerformanceImplicitGemmMlir::CalculateBlockGemmPerformanceParameters(
         GemmMLevel0Cluster, GemmNLevel0Cluster, GemmMLevel1Cluster, GemmNLevel1Cluster, true);
 }
 
-std::tuple<int, int, int, int, bool>
-PerformanceImplicitGemmMlir::CalculateGemmABlockCopyPerformanceParameters(
-    const ConvolutionContext&) const
+std::tuple<int, bool> PerformanceImplicitGemmMlir::CalculateGemmABlockCopyPerformanceParameters(
+    const ConvolutionContext& ctx) const
 {
+    if(wrw)
+    {
+        PerformanceImplicitGemmV4R4WrW::CalculateGemmABlockCopyPerformanceParameters(
+            ctx, BlockSize, GemmMPerBlock, GemmKPerBlock);
+    }
+    else if
+    {
+    }
+    else
+    {
+    }
+    PerformanceImplicitGemmBwdDataV1R1();
     int ClusterLengths_GemmK  = 0;
     int ClusterLengths_GemmM  = 0;
     int SrcDataPerRead_GemmK  = amd_buffer_load_max_length<float>();
@@ -214,20 +225,19 @@ PerformanceImplicitGemmMlir::CalculateGemmABlockCopyPerformanceParameters(
     }
     catch(...)
     {
-        return std::make_tuple(-1, -1, -1, -1, false);
+        return std::make_tuple(-1, false);
     }
 
-    return std::make_tuple(ClusterLengths_GemmK,
-                           ClusterLengths_GemmM,
-                           SrcDataPerRead_GemmK,
-                           DstDataPerWrite_GemmM,
-                           true);
+    return std::make_tuple(DstDataPerWrite_GemmM, true);
 }
 
 std::tuple<int, int, int, int, bool>
 PerformanceImplicitGemmMlir::CalculateGemmBBlockCopyPerformanceParameters(
     const ConvolutionContext& ctx) const
 {
+
+    PerformanceImplicitGemmV4R4WrW::CalculateGemmBBlockCopyPerformanceParameters(
+        ctx, BlockSize, GemmNPerBlock, GemmKPerBlock);
     int ClusterLengths_GemmK  = 0;
     int ClusterLengths_GemmN  = 0;
     int SrcDataPerRead_GemmN  = amd_buffer_load_max_length<float>();
@@ -339,6 +349,8 @@ PerformanceImplicitGemmMlir::CalculateGemmBBlockCopyPerformanceParameters(
 std::tuple<int, bool> PerformanceImplicitGemmMlir::CalculateGemmCThreadCopyPerformanceParameters(
     const ConvolutionContext& ctx) const
 {
+    PerformanceImplicitGemmV4R4WrW::CalculateGemmCThreadCopyPerformanceParameters(ctx,
+                                                                                  GemmNPerThread);
     int DstDataPerWrite_GemmN1 = amd_buffer_store_max_length<float>();
 
     try
@@ -372,8 +384,7 @@ PerformanceImplicitGemmMlir::CalculateLdsNumberOfByte(const ConvolutionContext& 
         bool valid = false;
 
         int GemmABlockCopyDescDataPerWriteGemmM = 0;
-        std::tie(
-            std::ignore, std::ignore, std::ignore, GemmABlockCopyDescDataPerWriteGemmM, valid) =
+        std::tie(GemmABlockCopyDescDataPerWriteGemmM, valid) =
             CalculateGemmABlockCopyPerformanceParameters(ctx);
 
         if(!valid)
@@ -450,8 +461,7 @@ bool PerformanceImplicitGemmMlir::IsValid(const ConvolutionContext& ctx) const
         return false;
 
     // check blockwise copy of A matrix
-    std::tie(std::ignore, std::ignore, std::ignore, std::ignore, valid) =
-        CalculateGemmABlockCopyPerformanceParameters(ctx);
+    std::tie(std::ignore, valid) = CalculateGemmABlockCopyPerformanceParameters(ctx);
 
     if(!valid)
         return false;
@@ -776,8 +786,8 @@ ConvSolution ConvHipImplicitGemmMlir::GetSolution(const ConvolutionContext& ctx,
     else
     {
         result.invoker_factory = [](const std::vector<Kernel>& kernels) {
-            return [=](const Handle& handle, const boost::any& primitive_params) {
-                const auto invoke_params = boost::any_cast<conv::WrWInvokeParams>(primitive_params);
+            return [=](const Handle& handle, const AnyInvokeParams& primitive_params) {
+                const auto& invoke_params = primitive_params.CastTo<conv::WrWInvokeParams>();
                 const auto& tensors      = invoke_params.tensors;
                 handle.Run(kernels[0])(tensors.x, tensors.dy, tensors.dw);
             };
