@@ -69,6 +69,7 @@ MIOPEN_DECLARE_ENV_VAR(MIOPEN_CONV_PRECISE_ROCBLAS_TIMING)
 MIOPEN_DECLARE_ENV_VAR(MIOPEN_DEBUG_CONV_FFT)
 MIOPEN_DECLARE_ENV_VAR(MIOPEN_DEVICE_ARCH)
 MIOPEN_DECLARE_ENV_VAR(MIOPEN_DEBUG_CONV_IMMED_FALLBACK)
+MIOPEN_DECLARE_ENV_VAR(MIOPEN_DEBUG_COMPILE_ONLY)
 
 #if MIOPEN_USE_GEMM
 #ifdef CPPCHECK
@@ -787,7 +788,7 @@ void ConvolutionDescriptor::FindConvFwdAlgorithm(Handle& handle,
         });
     }
 
-    if(perf_db.empty())
+    if(perf_db.empty() && !IsEnabled(MIOPEN_DEBUG_COMPILE_ONLY{}))
         MIOPEN_THROW("Forward Convolution cannot be executed due to incorrect params");
 
     std::sort(begin(perf_db), end(perf_db));
@@ -2293,7 +2294,7 @@ void ConvolutionDescriptor::FindConvBwdDataAlgorithm(Handle& handle,
         });
     }
 
-    if(perf_db.empty())
+    if(perf_db.empty() && !IsEnabled(MIOPEN_DEBUG_COMPILE_ONLY{}))
         MIOPEN_THROW(miopenStatusUnknownError,
                      "Backward Data Convolution cannot be executed due to incorrect params");
 
@@ -3059,7 +3060,7 @@ void ConvolutionDescriptor::FindConvBwdWeightsAlgorithm(Handle& handle,
         });
     }
 
-    if(perf_db.empty())
+    if(perf_db.empty() && !IsEnabled(MIOPEN_DEBUG_COMPILE_ONLY{}))
         MIOPEN_THROW("Backward Weights Convolution cannot be executed due to incorrect params");
 
     std::sort(begin(perf_db), end(perf_db));
