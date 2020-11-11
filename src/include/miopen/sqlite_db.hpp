@@ -57,7 +57,7 @@ class path;
 namespace miopen {
 
 constexpr bool InMemDb                = MIOPEN_EMBED_DB;
-const auto MIOPEN_SQL_BUSY_TIMEOUT_MS = 60000;
+const auto MIOPEN_SQL_BUSY_TIMEOUT_MS = 10;
 template <class Derived>
 struct SQLiteSerializable
 {
@@ -258,6 +258,11 @@ class SQLiteBase
         else
         {
             dbInvalid = false;
+	    auto res = sql.Exec("PRAGMA journal_mode=WAL;");
+	    if(res.empty() || res[0]["journal_mode"] == "wal")
+	    {
+		MIOPEN_LOG_I("SQLite does not support WAL");
+	    }
         }
     }
 
