@@ -42,6 +42,7 @@
 
 #include <miopen/conv/context.hpp>
 #include <miopen/conv_solution.hpp>
+#include <miopen/binary_cache.hpp>
 #include <miopen/logger.hpp>
 #include <miopen/handle.hpp>
 #include <miopen/timer.hpp>
@@ -345,21 +346,20 @@ auto GenericSearch(const Solver s, const Context& context, const AnyInvokeParams
     HeartBeat<PerformanceConfig> heartbeat;
     heartbeat.Start();
 
-// PrecompileKernels call saves to binary_cache, this needs to be escaped if KERN_CACHE is not on.
-#if MIOPEN_ENABLE_SQLITE_KERN_CACHE
-    std::vector<KernelInfo> kernels;
-    for(const auto& current_config : all_configs)
-    {
-        ConvSolution current_solution = s.GetSolution(context, current_config, true);
-        for(auto&& kernel : current_solution.construction_params)
+    if(!miopen::IsBinaryCacheDisabled()){
+        std::vector<KernelInfo> kernels;
+        for(const auto& current_config : all_configs)
         {
-            if(profile_h.HasProgram(kernel.kernel_file, kernel.comp_options))
-                continue;
-            kernels.push_back(kernel);
+            ConvSolution current_solution = s.GetSolution(context, current_config, true);
+            for(auto&& kernel : current_solution.construction_params)
+            {
+                if(profile_h.HasProgram(kernel.kernel_file, kernel.comp_options))
+                    continue;
+                kernels.push_back(kernel);
+            }
         }
-    }
     std::ignore = PrecompileKernels(profile_h, kernels);
-#endif
+    }
 
     if(!IsEnabled(MIOPEN_DEBUG_COMPILE_ONLY{}))
     {

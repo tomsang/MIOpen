@@ -221,15 +221,15 @@ Kernel KernelCache::AddKernel(const Handle& h,
     }
 
     Kernel kernel{};
-    const char* const arch = miopen::GetStringEnv(MIOPEN_DEVICE_ARCH{});
-    if(arch != nullptr && strlen(arch) > 0)
-    {
-        kernel = Kernel{program, kernel_name};
-    }
-    else
-    {
+    //const char* const arch = miopen::GetStringEnv(MIOPEN_DEVICE_ARCH{});
+    //if(IsEnabled(MIOPEN_DEBUG_ENFORCE_DEVICE{}))
+    //{
+    //    kernel = Kernel{program, kernel_name};
+    //}
+    //else
+    //{
         kernel = Kernel{program, kernel_name, vld, vgd};
-    }
+    //}
 
     if(!network_config.empty() && !algorithm.empty())
     {

@@ -473,10 +473,9 @@ std::size_t Handle::GetGlobalMemorySize() const
 std::size_t Handle::GetMaxComputeUnits() const
 {
     int result;
-    const char* const num_cu = miopen::GetStringEnv(MIOPEN_DEVICE_CU{});
-    if(num_cu != nullptr && strlen(num_cu) > 0)
+    if(IsEnabled(MIOPEN_DEBUG_ENFORCE_DEVICE_CU{}))
     {
-        return boost::lexical_cast<std::size_t>(num_cu);
+        return miopen::Value(MIOPEN_DEBUG_ENFORCE_DEVICE_CU{});
     }
     auto status =
         hipDeviceGetAttribute(&result, hipDeviceAttributeMultiprocessorCount, this->impl->device);
@@ -522,11 +521,6 @@ std::size_t Handle::GetMaxMemoryAllocSize()
 
 std::string Handle::GetDeviceName() const
 {
-    const char* const arch = miopen::GetStringEnv(MIOPEN_DEVICE_ARCH{});
-    if(arch != nullptr && strlen(arch) > 0)
-    {
-        return arch;
-    }
     hipDeviceProp_t props{};
     hipGetDeviceProperties(&props, this->impl->device);
     std::string n("gfx" + std::to_string(props.gcnArch));

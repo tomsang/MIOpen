@@ -44,7 +44,7 @@
 namespace miopen {
 
 MIOPEN_DECLARE_ENV_VAR(MIOPEN_DISABLE_CACHE)
-MIOPEN_DECLARE_ENV_VAR(MIOPEN_CUSTOM_CACHE_DIR)
+MIOPEN_DECLARE_ENV_VAR(MIOPEN_DEBUG_BINARY_CACHE_DIR)
 
 static boost::filesystem::path ComputeSysCachePath()
 {
@@ -61,15 +61,14 @@ static boost::filesystem::path ComputeUserCachePath()
 #ifdef MIOPEN_CACHE_DIR
     std::string cache_dir = MIOPEN_CACHE_DIR;
     std::string version;
+        std::to_string(MIOPEN_VERSION_MAJOR) + "." + std::to_string(MIOPEN_VERSION_MINOR) +
+        "." + std::to_string(MIOPEN_VERSION_PATCH) + "." +
+        MIOPEN_STRINGIZE(MIOPEN_VERSION_TWEAK);
 
-    version = std::to_string(MIOPEN_VERSION_MAJOR) + "." + std::to_string(MIOPEN_VERSION_MINOR) +
-              "." + std::to_string(MIOPEN_VERSION_PATCH) + "." +
-              MIOPEN_STRINGIZE(MIOPEN_VERSION_TWEAK);
-    auto p = boost::filesystem::path{miopen::ExpandUser(cache_dir)} / version;
-
-    const char* const custom = miopen::GetStringEnv(MIOPEN_CUSTOM_CACHE_DIR{});
-    if(custom != nullptr && strlen(custom) > 0)
-        p = boost::filesystem::path{miopen::ExpandUser(custom)};
+    const char* const custom = miopen::GetStringEnv(MIOPEN_DEBUG_BINARY_CACHE_DIR{});
+    const auto p = (custom != nullptr && strlen(custom) > 0)
+        ? boost::filesystem::path{miopen::ExpandUser(custom)}
+        : boost::filesystem::path{miopen::ExpandUser(cache_dir)} / version;
 
     if(!boost::filesystem::exists(p) && !MIOPEN_DISABLE_USERDB)
         boost::filesystem::create_directories(p);
@@ -99,7 +98,7 @@ boost::filesystem::path GetCachePath(bool is_system)
     }
 }
 
-static bool IsCacheDisabled()
+bool IsBinaryCacheDisabled()
 {
 #ifdef MIOPEN_CACHE_DIR
     if(MIOPEN_DISABLE_USERDB && MIOPEN_DISABLE_SYSDB)
@@ -144,7 +143,7 @@ std::string LoadBinary(const std::string& device,
                        const std::string& args,
                        bool is_kernel_str)
 {
-    if(miopen::IsCacheDisabled())
+    if(miopen::IsBinaryCacheDisabled())
         return {};
 
     auto db              = GetDb(device, num_cu);
@@ -171,7 +170,7 @@ void SaveBinary(const std::string& hsaco,
                 const std::string& args,
                 bool is_kernel_str)
 {
-    if(miopen::IsCacheDisabled())
+    if(miopen::IsBinaryCacheDisabled())
         return;
 
     auto db = GetDb(device, num_cu);
@@ -188,7 +187,7 @@ boost::filesystem::path LoadBinary(const std::string& device,
                                    const std::string& args,
                                    bool is_kernel_str)
 {
-    if(miopen::IsCacheDisabled())
+    if(miopen::IsBinaryCacheDisabled())
         return {};
 
     (void)num_cu;
@@ -209,7 +208,7 @@ void SaveBinary(const boost::filesystem::path& binary_path,
                 const std::string& args,
                 bool is_kernel_str)
 {
-    if(miopen::IsCacheDisabled())
+    if(miopen::IsBinaryCacheDisabled())
     {
         boost::filesystem::remove(binary_path);
     }
