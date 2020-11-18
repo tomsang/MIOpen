@@ -789,7 +789,7 @@ void ConvolutionDescriptor::FindConvFwdAlgorithm(Handle& handle,
     }
 
     if(IsEnabled(MIOPEN_DEBUG_COMPILE_ONLY{})){
-        MIOPEN_THROW("MIOPEN_DEBUG_COMPILE_ONLY is set, escaping forward convolution");
+        MIOPEN_THROW(miopenStatusNoGPU, "MIOPEN_DEBUG_COMPILE_ONLY is set, escaping forward convolution. Search skipped.");
     }
 
     if(perf_db.empty())
@@ -2299,7 +2299,7 @@ void ConvolutionDescriptor::FindConvBwdDataAlgorithm(Handle& handle,
     }
 
     if(IsEnabled(MIOPEN_DEBUG_COMPILE_ONLY{})){
-        MIOPEN_THROW("MIOPEN_DEBUG_COMPILE_ONLY is set, escaping backward data convolution");
+        MIOPEN_THROW(miopenStatusNoGPU, "MIOPEN_DEBUG_COMPILE_ONLY is set, escaping backward data convolution. Search skipped.");
     }
     if(perf_db.empty())
         MIOPEN_THROW(miopenStatusUnknownError,
@@ -3068,7 +3068,7 @@ void ConvolutionDescriptor::FindConvBwdWeightsAlgorithm(Handle& handle,
     }
 
     if(IsEnabled(MIOPEN_DEBUG_COMPILE_ONLY{})){
-        MIOPEN_THROW("MIOPEN_DEBUG_COMPILE_ONLY is set, escaping backward weights convolution");
+        MIOPEN_THROW(miopenStatusNoGPU, "MIOPEN_DEBUG_COMPILE_ONLY is set, escaping backward weights convolution. Search skipped.");
     }
 
     if(perf_db.empty())
