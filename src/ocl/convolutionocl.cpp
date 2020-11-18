@@ -788,7 +788,11 @@ void ConvolutionDescriptor::FindConvFwdAlgorithm(Handle& handle,
         });
     }
 
-    if(perf_db.empty() && !IsEnabled(MIOPEN_DEBUG_COMPILE_ONLY{}))
+    if(IsEnabled(MIOPEN_DEBUG_COMPILE_ONLY{})){
+        MIOPEN_THROW("MIOPEN_DEBUG_COMPILE_ONLY is set, escaping forward convolution");
+    }
+
+    if(perf_db.empty())
         MIOPEN_THROW("Forward Convolution cannot be executed due to incorrect params");
 
     std::sort(begin(perf_db), end(perf_db));
@@ -2294,7 +2298,10 @@ void ConvolutionDescriptor::FindConvBwdDataAlgorithm(Handle& handle,
         });
     }
 
-    if(perf_db.empty() && !IsEnabled(MIOPEN_DEBUG_COMPILE_ONLY{}))
+    if(IsEnabled(MIOPEN_DEBUG_COMPILE_ONLY{})){
+        MIOPEN_THROW("MIOPEN_DEBUG_COMPILE_ONLY is set, escaping backward data convolution");
+    }
+    if(perf_db.empty())
         MIOPEN_THROW(miopenStatusUnknownError,
                      "Backward Data Convolution cannot be executed due to incorrect params");
 
@@ -3060,7 +3067,11 @@ void ConvolutionDescriptor::FindConvBwdWeightsAlgorithm(Handle& handle,
         });
     }
 
-    if(perf_db.empty() && !IsEnabled(MIOPEN_DEBUG_COMPILE_ONLY{}))
+    if(IsEnabled(MIOPEN_DEBUG_COMPILE_ONLY{})){
+        MIOPEN_THROW("MIOPEN_DEBUG_COMPILE_ONLY is set, escaping backward weights convolution");
+    }
+
+    if(perf_db.empty())
         MIOPEN_THROW("Backward Weights Convolution cannot be executed due to incorrect params");
 
     std::sort(begin(perf_db), end(perf_db));
