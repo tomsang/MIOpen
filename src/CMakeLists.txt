@@ -636,9 +636,9 @@ endif()
 
 ############################################################
 # MIOpen depends on libMLIRMIOpen for implicit gemm
-if(LIBMLIRMIOPEN)
+if(LIBMLIRMIOPEN AND NOT MIOPEN_USE_COMGR)
   MESSAGE(STATUS "LibMLIRMIOpen: " ${LIBMLIRMIOPEN})
-  set(LIBMLIRMIOPEN "${LIBMLIRMIOPEN}")
+  set(MIOPEN_LIBMLIRMIOPEN "${LIBMLIRMIOPEN}")
   target_link_libraries(MIOpen PRIVATE ${LIBMLIRMIOPEN})
 else()
   message(STATUS "LibMLIRMIOpen not found, no flexible layout support")
